@@ -342,7 +342,7 @@ export const LESSONS_DATA = {
       { hindi: "खाना", target: "ଖାଦ୍ୟ", roman: "Khadya", meaning: "Food" },
       { hindi: "दूध", target: "କ୍ଷୀର", roman: "Ksheer", meaning: "Milk" },
       { hindi: "चावल", target: "ଭାତ", roman: "Bhaat", meaning: "Rice" },
-      { hindi: "रोटी", target: "ୁଟି", roman: "Ruti", meaning: "Bread" },
+      { hindi: "रोटी", target: "ରୁଟି", roman: "Ruti", meaning: "Bread" },
       { hindi: "सब्जी", target: "ତରକାରି", roman: "Tarakaari", meaning: "Vegetables" },
     ]},
     { id: 4, title: "Family", icon: "👨‍👩‍👧", words: [
@@ -425,29 +425,41 @@ export const LESSONS_DATA = {
 };
 
 // For Home.jsx compatibility
-export const lessons = LESSONS_DATA.bhojpuri.map(l => ({ ...l, progress: l.id === 1 ? 100 : l.id === 2 ? 60 : 0, status: l.id === 1 ? 'done' : l.id === 2 ? 'progress' : 'new', subtitle: l.words.slice(0,3).map(w => w.roman).join(', ') + '...' }));
+export const lessons = LESSONS_DATA.bhojpuri.map(l => ({
+  ...l,
+  progress: l.id === 1 ? 100 : l.id === 2 ? 60 : 0,
+  status: l.id === 1 ? 'done' : l.id === 2 ? 'progress' : 'new',
+  subtitle: l.words.slice(0,3).map(w => w.roman).join(', ') + '...'
+}));
 
-export const wordOfDay = {
-  hindi: "नीमन",
-  bhojpuri: "Neeman",
-  meaning: "Good / Fine — used where Hindi speakers say 'accha'",
-  example: "Sab kuch neeman ba (सब कुछ नीमन बा) — Everything is good."
-};
+// ─── Rotating Word of the Day ─────────────────────────────────────────────────
+const allWords = [
+  { hindi: "नीमन", bhojpuri: "Neeman", meaning: "Good / Fine — used where Hindi speakers say 'accha'", example: "Sab kuch neeman ba — Everything is good." },
+  { hindi: "रउआ", bhojpuri: "Rauwa", meaning: "You (respectful) — the polite form of 'aap' in Bhojpuri", example: "Rauwa kaisan baani? — How are you?" },
+  { hindi: "बहुत", bhojpuri: "Bahut / Bahute", meaning: "Very / A lot — same as Hindi but often pronounced 'bahute'", example: "Bahute neeман ba — It is very good." },
+  { hindi: "खाना", bhojpuri: "Khaana / Bhojan", meaning: "Food — Bhojpuri often uses 'bhojan' in formal contexts", example: "Khaana tayaar ba — Food is ready." },
+  { hindi: "पानी", bhojpuri: "Paniya", meaning: "Water — the classic Bhojpuri word for paani", example: "Paniya pi la — Drink some water." },
+  { hindi: "घर", bhojpuri: "Ghar", meaning: "Home — same word, but Bhojpuri adds warmth with 'apan ghar'", example: "Apan ghar — Our home / My home." },
+  { hindi: "भाई", bhojpuri: "Bhaiya", meaning: "Brother — affectionate form used widely in eastern UP & Bihar", example: "Bhaiya kaahan baa? — Where is brother?" },
+  { hindi: "माँ", bhojpuri: "Maai", meaning: "Mother — the Bhojpuri word for mother, full of warmth", example: "Maai ke yaad aavela — I miss mother." },
+  { hindi: "आना", bhojpuri: "Aawe / Aavela", meaning: "To come — Bhojpuri conjugates 'aana' as 'aavela' in present tense", example: "Uu aavela — He/She is coming." },
+  { hindi: "जाना", bhojpuri: "Jaai / Jaala", meaning: "To go — present tense in Bhojpuri uses 'jaala'", example: "Hum jaala — I am going." },
+  { hindi: "सुंदर", bhojpuri: "Sohna / Sundar", meaning: "Beautiful — Bhojpuri uses 'sohna' (from Punjab influence) or 'sundar'", example: "Bahut sohna ba — It is very beautiful." },
+  { hindi: "खुशी", bhojpuri: "Khushi", meaning: "Happiness — same word, but the feeling is expressed more openly in Bhojpuri culture!", example: "Man mein bahut khushi ba — There is great happiness in the heart." },
+  { hindi: "दोस्त", bhojpuri: "Dost / Mittir", meaning: "Friend — 'mittir' is the Bhojpuri-specific word for close friend", example: "Uu hamar mittir haa — He is my friend." },
+  { hindi: "बात", bhojpuri: "Baat / Gal", meaning: "Talk / Matter — 'gal' is used in casual Bhojpuri conversation", example: "Kaa gal ba? — What's the matter?" },
+];
+
+// Pick word based on day of year so it changes daily
+const dayOfYear = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0)) / 86400000);
+export const wordOfDay = allWords[dayOfYear % allWords.length];
 
 export const dailyChallenges = [
   { hindi: "आप कैसे हैं?", roman: "Aap kaise hain?", meaning: "How are you?", answer: "रउआ कइसन बानी?", answer_roman: "Rauwa kaisan baani?" },
   { hindi: "मेरा नाम राम है", roman: "Mera naam Ram hai", meaning: "My name is Ram", answer: "हमार नाम राम बा", answer_roman: "Hamaar naam Ram ba" },
-];
-
-export const flashcards = [
-  { hindi: "घर", bhojpuri: "घर", meaning: "Home" },
-  { hindi: "पानी", bhojpuri: "पनिया", meaning: "Water" },
-  { hindi: "खाना", bhojpuri: "खाना", meaning: "Food" },
-  { hindi: "माँ", bhojpuri: "माई", meaning: "Mother" },
-  { hindi: "आप", bhojpuri: "रउआ", meaning: "You (respectful)" },
-  { hindi: "आना", bhojpuri: "आवे", meaning: "To come" },
-  { hindi: "जाना", bhojpuri: "जाव", meaning: "To go" },
-  { hindi: "अच्छा", bhojpuri: "नीमन", meaning: "Good" },
-  { hindi: "नमस्ते", bhojpuri: "प्रणाम", meaning: "Hello" },
-  { hindi: "धन्यवाद", bhojpuri: "आभार", meaning: "Thank you" },
+  { hindi: "मुझे भूख लगी है", roman: "Mujhe bhookh lagi hai", meaning: "I am hungry", answer: "हमके भूख लागल बा", answer_roman: "Hamke bhookh laagal ba" },
+  { hindi: "यह बहुत अच्छा है", roman: "Yeh bahut accha hai", meaning: "This is very good", answer: "ई बहुत नीमन बा", answer_roman: "Ee bahut neeman ba" },
+  { hindi: "कल मिलते हैं", roman: "Kal milte hain", meaning: "See you tomorrow", answer: "काल भेंट होई", answer_roman: "Kaal bhent hoi" },
+  { hindi: "तुम कहाँ जा रहे हो?", roman: "Tum kahan ja rahe ho?", meaning: "Where are you going?", answer: "रउआ कहाँ जाता?", answer_roman: "Rauwa kahan jaata?" },
+  { hindi: "मुझे पानी चाहिए", roman: "Mujhe paani chahiye", meaning: "I need water", answer: "हमके पनिया चाही", answer_roman: "Hamke paniya chaahi" },
 ];
