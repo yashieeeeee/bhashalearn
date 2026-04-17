@@ -1,0 +1,55 @@
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider, useAuth } from './context/AuthContext';
+import Sidebar from './components/Sidebar';
+import AiTutor from './components/AiTutor';
+import Auth from './pages/Auth';
+import Home from './pages/Home';
+import Lessons from './pages/Lessons';
+import Quiz from './pages/Quiz';
+import Flashcards from './pages/Flashcards';
+import Daily from './pages/Daily';
+import './index.css';
+
+function AppLayout() {
+  const { user, loading } = useAuth();
+
+  if (loading) return (
+    <div style={{ minHeight: '100vh', background: '#FAF6F0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ textAlign: 'center' }}>
+        <div style={{ fontFamily: "'Playfair Display',serif", fontSize: 28, fontWeight: 700, color: '#1A1208' }}>
+          Bhasha<span style={{ color: '#E8611A' }}>Learn</span>
+        </div>
+        <div style={{ fontSize: 14, color: '#7A6552', marginTop: 8 }}>Loading your profile...</div>
+      </div>
+    </div>
+  );
+
+  if (!user) return <Auth />;
+
+  return (
+    <div style={{ display: 'flex', minHeight: '100vh' }}>
+      <Sidebar />
+      <main style={{ marginLeft: 220, flex: 1, padding: '2.5rem 2rem', minHeight: '100vh', background: '#FAF6F0' }}>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/lessons" element={<Lessons />} />
+          <Route path="/quiz" element={<Quiz />} />
+          <Route path="/flashcards" element={<Flashcards />} />
+          <Route path="/daily" element={<Daily />} />
+          <Route path="*" element={<Navigate to="/" />} />
+        </Routes>
+      </main>
+      <AiTutor />
+    </div>
+  );
+}
+
+export default function App() {
+  return (
+    <AuthProvider>
+      <BrowserRouter>
+        <AppLayout />
+      </BrowserRouter>
+    </AuthProvider>
+  );
+}
