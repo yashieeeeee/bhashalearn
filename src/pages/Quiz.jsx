@@ -19,19 +19,19 @@ export default function Quiz() {
 
   const LANGS = ['bhojpuri','tamil','telugu','marathi','bengali','gujarati','kannada','malayalam','punjabi','odia','urdu','assamese'];
 
-  async function startQuiz(lang) {
-    setLoading(true); setSelectedLang(lang);
-    const allWords = (LESSONS_DATA[lang] || []).flatMap(l => l.words).slice(0, 12);
-    try {
-      const data = await generateQuiz(allWords);
-      setQuestions(data.questions);
-      setQIndex(0); setScore(0); setSelected(null); setDone(false); setSaved(false);
-    } catch {
-      alert('Could not generate quiz. Please try again.');
-    }
-    setLoading(false);
+async function startQuiz(lang) {
+  if (loading) return;
+  setLoading(true); setSelectedLang(lang);
+  const allWords = (LESSONS_DATA[lang] || []).flatMap(l => l.words).slice(0, 12);
+  try {
+    const data = await generateQuiz(allWords);
+    setQuestions(data.questions);
+    setQIndex(0); setScore(0); setSelected(null); setDone(false); setSaved(false);
+  } catch (e) {
+    alert('Quiz error: ' + e.message);
   }
-
+  setLoading(false);
+}
   function pick(i) {
     if (selected !== null || !questions) return;
     setSelected(i);
