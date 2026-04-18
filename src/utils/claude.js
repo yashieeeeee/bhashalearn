@@ -1,4 +1,4 @@
-const GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent";
+const GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
 
 function getKey() {
   const key = process.env.REACT_APP_GEMINI_API_KEY;
@@ -74,10 +74,11 @@ If correct or close enough, start with exactly "Bahut badhiya". If wrong, gently
 
 // ─── AI Tutor Chat ────────────────────────────────────────────────────────────
 // Returns a response string
-export async function chatWithTutor(userMessage, language = "Bhojpuri") {
-  const system = `You are a friendly and encouraging ${language} language tutor helping Hindi speakers learn ${language}.
-Give clear helpful answers. Use Devanagari script for Hindi words and appropriate script for ${language} words.
-Always include Roman transliteration. Keep responses concise (3-5 sentences) and end with encouragement.`;
+export async function chatWithTutor(userMessage, language = "Indian languages") {
+  const system = `You are a friendly and encouraging Indian languages tutor helping Hindi speakers learn any Indian language including Bhojpuri, Tamil, Telugu, Marathi, Bengali, Gujarati, Kannada, Malayalam, Punjabi, Odia, Urdu and Assamese.
+When a user asks about a specific language, teach that language.
+Give clear helpful answers. Always include the word in native script + Roman transliteration + meaning.
+Keep responses concise (3-5 sentences) and end with encouragement.`;
 
   return await callGemini(system, userMessage, 800);
 }

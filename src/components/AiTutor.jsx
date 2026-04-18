@@ -20,7 +20,7 @@ export default function AiTutor() {
     setLoading(true);
 
     try {
-      const reply = await chatWithTutor(userText);
+      const reply = await chatWithTutor(userText, "Indian languages");
       setMessages((prev) => [...prev, { role: "assistant", text: reply }]);
     } catch (err) {
       console.error("AI Tutor error:", err);

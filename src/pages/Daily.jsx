@@ -1,8 +1,7 @@
 import { useState } from 'react';
-import { dailyChallenges } from '../data/content';
+import { wordOfDay } from '../data/content';
 import { checkTranslation } from '../utils/claude';
 import { useAuth } from '../context/AuthContext';
-
 const days = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 
 const ALL_CHALLENGES = [
@@ -21,7 +20,7 @@ export default function Daily() {
 
   const todayIndex = Math.floor(Date.now() / 86400000) % ALL_CHALLENGES.length;
   const challenge = ALL_CHALLENGES[todayIndex];
-  const wordOfDay = getWordOfDay('bhojpuri');
+  const word = wordOfDay;
 
   const streakStatus = days.map((_, i) =>
     i < streak ? 'done' : i === Math.min(streak, 6) ? 'today' : 'upcoming'
