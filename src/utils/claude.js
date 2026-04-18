@@ -8,6 +8,9 @@ function getKey() {
 
 async function callGemini(systemPrompt, userMessage, maxTokens = 1000) {
   const key = getKey();
+
+  await new Promise(r => setTimeout(r, 500));
+
   const res = await fetch(`${GEMINI_URL}?key=${key}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -17,6 +20,10 @@ async function callGemini(systemPrompt, userMessage, maxTokens = 1000) {
       generationConfig: { maxOutputTokens: maxTokens, temperature: 0.7 },
     }),
   });
+
+  if (res.status === 429) {
+    throw new Error("Too many requests! Please wait 1 minute and try again. 🙏");
+  }
 
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
@@ -30,22 +37,21 @@ async function callGemini(systemPrompt, userMessage, maxTokens = 1000) {
 }
 
 // ─── Quiz Generator ───────────────────────────────────────────────────────────
-// Returns: { questions: [{ hindi, roman, meaning, options: [], correct: 0 }] }
 export async function generateQuiz(words) {
   const system = `You are a language quiz generator. Given vocabulary words, generate exactly 5 multiple choice questions.
-Return ONLY valid JSON, no markdown fences, no explanation:
+Return ONLY valid JSON, absolutely no markdown, no backticks, no explanation, just raw JSON:
 {"questions":[{"hindi":"hindi word","roman":"romanization","meaning":"english meaning","options":["a","b","c","d"],"correct":0}]}
-The "correct" field is the 0-based index of the right answer. Options must be in the target language. Randomize the correct answer position.`;
+The "correct" field is the 0-based index of the right answer. Randomize the correct answer position.`;
 
   const text = await callGemini(system, `Generate quiz from these words: ${JSON.stringify(words.slice(0, 12))}`);
-  const clean = text.replace(/```json|```/g, "").trim();
-  const parsed = JSON.parse(clean);
+  const jsonMatch = text.match(/\{[\s\S]*\}/);
+  if (!jsonMatch) throw new Error("No JSON found in response");
+  const parsed = JSON.parse(jsonMatch[0]);
   if (!parsed.questions || !Array.isArray(parsed.questions)) throw new Error("Invalid quiz format");
   return parsed;
 }
 
 // ─── Lesson Generator ─────────────────────────────────────────────────────────
-// Returns: { title, words: [{ hindi, target, roman, meaning }] }
 export async function generateLesson(topic) {
   const system = `You are a language teacher creating vocabulary lessons for Hindi speakers.
 Generate a lesson with exactly 6 vocabulary words on the given topic.
@@ -53,27 +59,26 @@ Return ONLY valid JSON, no markdown, no explanation:
 {"title":"Topic Name","words":[{"hindi":"hindi word in devanagari","target":"word in target language script","roman":"romanized pronunciation","meaning":"english meaning"}]}`;
 
   const text = await callGemini(system, `Topic: ${topic}`);
-  const clean = text.replace(/```json|```/g, "").trim();
-  const parsed = JSON.parse(clean);
+  const jsonMatch = text.match(/\{[\s\S]*\}/);
+  if (!jsonMatch) throw new Error("No JSON found in response");
+  const parsed = JSON.parse(jsonMatch[0]);
   if (!parsed.words || !Array.isArray(parsed.words)) throw new Error("Invalid lesson format");
   return parsed;
 }
 
 // ─── Translation Checker ──────────────────────────────────────────────────────
-// Returns a feedback string
-export async function checkTranslation(hindi, userAnswer, correctAnswer) {
-  const system = `You are a friendly Bhojpuri language tutor checking a student's translation.
+export async function checkTranslation(hindi, userAnswer, correctAnswer, language = "Bhojpuri") {
+  const system = `You are a friendly ${language} language tutor checking a student's translation.
 If correct or close enough, start with exactly "Bahut badhiya". If wrong, gently correct them.
-2-3 sentences max. Use simple English with some Bhojpuri flavor.`;
+2-3 sentences max. Use simple English with some flavor of the target language.`;
 
   return await callGemini(
     system,
-    `Hindi: "${hindi}" | Correct answer: "${correctAnswer}" | Student's answer: "${userAnswer}". Give feedback.`
+    `Hindi: "${hindi}" | Correct ${language} answer: "${correctAnswer}" | Student's answer: "${userAnswer}". Give feedback.`
   );
 }
 
 // ─── AI Tutor Chat ────────────────────────────────────────────────────────────
-// Returns a response string
 export async function chatWithTutor(userMessage, language = "Indian languages") {
   const system = `You are a friendly and encouraging Indian languages tutor helping Hindi speakers learn any Indian language including Bhojpuri, Tamil, Telugu, Marathi, Bengali, Gujarati, Kannada, Malayalam, Punjabi, Odia, Urdu and Assamese.
 When a user asks about a specific language, teach that language.
