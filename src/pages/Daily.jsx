@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { dailyChallenges } from '../data/content';
-import { checkTranslation, getWordOfDay } from '../utils/claude';
+import { checkTranslation } from '../utils/claude';
 import { useAuth } from '../context/AuthContext';
 
 const days = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
