@@ -410,7 +410,7 @@ export default function Lessons() {
   const [xp, setXp] = useState(0);
   const [customTopic, setCustomTopic] = useState('');
   const [generating, setGenerating] = useState(false);
-  const [aiLesson, setAiLesson] = useState(null);
+  const [, setAiLesson] = useState(null);
   const [error, setError] = useState('');
 
   const currentLang = LANGUAGES.find(l => l.code === selectedLang);
