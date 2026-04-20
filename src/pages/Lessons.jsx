@@ -137,6 +137,7 @@ function SentenceMode({ lesson, lang, onBack, onComplete }) {
 
 useEffect(() => {
     generateSentences();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function generateSentences() {
@@ -279,6 +280,7 @@ function WordQuiz({ lesson, lang, onBack, onComplete }) {
   const [score, setScore] = useState(0);
   const [done, setDone] = useState(false);
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { loadQuiz(); }, []);
 
   async function loadQuiz() {
