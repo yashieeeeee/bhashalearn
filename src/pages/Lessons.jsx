@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { LANGUAGES, LESSONS_DATA } from '../data/content';
 import { generateLesson, generateQuiz, chatWithTutor } from '../utils/claude';
 
@@ -135,31 +135,49 @@ function SentenceMode({ lesson, lang, onBack, onComplete }) {
   const [loading, setLoading] = useState(false);
   const [sentences, setSentences] = useState(null);
 
-  useState(() => {
+useEffect(() => {
     generateSentences();
   }, []);
 
   async function generateSentences() {
-    setLoading(true);
-    try {
-      const text = await chatWithTutor(
-        `Create 5 simple sentence translation exercises using basic words for a Hindi speaker learning ${lang.name}.
-        Return ONLY valid JSON, no markdown:
-        {"sentences":[{"hindi":"simple Hindi sentence","target":"${lang.name} translation","options":["correct answer","wrong1","wrong2","wrong3"],"correct":0}]}
-        Use words from this lesson: ${lesson.words.map(w => w.hindi).join(', ')}
-        Make sentences simple, 4-6 words each. Randomize correct answer position in options array.`,
-        lang.name
-      );
-      const jsonMatch = text.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        const parsed = JSON.parse(jsonMatch[0]);
-        setSentences(parsed.sentences);
-      }
-    } catch (e) {
-      setSentences(null);
+  setLoading(true);
+  try {
+    // Build sentences locally from lesson words — no API needed!
+    const templates = [
+      (w) => ({ hindi: `यह ${w.hindi} है`, target: `यह ${w.target} है`, options: shuffle([w.target, ...getWrongOptions(w)]) }),
+      (w) => ({ hindi: `मुझे ${w.hindi} चाहिए`, target: `मुझे ${w.target} चाहिए`, options: shuffle([w.target, ...getWrongOptions(w)]) }),
+      (w) => ({ hindi: `${w.hindi} अच्छा है`, target: `${w.target} अच्छा है`, options: shuffle([w.target, ...getWrongOptions(w)]) }),
+      (w) => ({ hindi: `यह मेरा ${w.hindi} है`, target: `यह मेरा ${w.target} है`, options: shuffle([w.target, ...getWrongOptions(w)]) }),
+      (w) => ({ hindi: `क्या यह ${w.hindi} है?`, target: `क्या यह ${w.target} है?`, options: shuffle([w.target, ...getWrongOptions(w)]) }),
+    ];
+
+    function getWrongOptions(word) {
+      return lesson.words
+        .filter(w => w.hindi !== word.hindi)
+        .sort(() => Math.random() - 0.5)
+        .slice(0, 3)
+        .map(w => w.target);
     }
-    setLoading(false);
+
+    function shuffle(arr) { return arr.sort(() => Math.random() - 0.5); }
+
+    const picked = lesson.words.sort(() => Math.random() - 0.5).slice(0, 5);
+    const built = picked.map((word, i) => {
+      const s = templates[i % templates.length](word);
+      return {
+        hindi: s.hindi,
+        target: s.target,
+        options: s.options,
+        correct: s.options.indexOf(word.target),
+      };
+    });
+
+    setSentences(built);
+  } catch (e) {
+    setSentences(null);
   }
+  setLoading(false);
+}
 
   function pick(i) {
     if (selected !== null) return;
@@ -261,7 +279,7 @@ function WordQuiz({ lesson, lang, onBack, onComplete }) {
   const [score, setScore] = useState(0);
   const [done, setDone] = useState(false);
 
-  useState(() => { loadQuiz(); }, []);
+  useEffect(() => { loadQuiz(); }, []);
 
   async function loadQuiz() {
     setLoading(true);

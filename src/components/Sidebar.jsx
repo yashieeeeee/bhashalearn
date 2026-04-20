@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { signOut } from '../utils/supabase';
-
 const navItems = [
   { to: '/', icon: '🏠', label: 'Home' },
   { to: '/lessons', icon: '📖', label: 'Lessons' },
@@ -12,7 +11,9 @@ const navItems = [
 ];
 
 export default function Sidebar() {
-  const { user, profile } = useAuth();
+  const auth = useAuth();
+  const user = auth?.user;
+  const profile = auth?.profile;
   const [menuOpen, setMenuOpen] = useState(false);
   const name = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Learner';
   const initials = name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
