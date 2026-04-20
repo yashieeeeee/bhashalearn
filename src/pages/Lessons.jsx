@@ -425,7 +425,7 @@ function LessonDetail({ lesson, lang, onBack, onStartQuiz, onStartSentences }) {
 
 // ─── Main Lessons page ────────────────────────────────────────────────────────
 export default function Lessons() {
-  const { user, profile, refreshProfile } = useAuth();
+  const { user, profile } = useAuth();
   const [selectedLang, setSelectedLang] = useState('bhojpuri');
   const [activeLevel, setActiveLevel] = useState(1);
   const [selectedLesson, setSelectedLesson] = useState(null);
