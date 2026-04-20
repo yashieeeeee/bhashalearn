@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { LANGUAGES, LESSONS_DATA } from '../data/content';
 import { generateLesson, generateQuiz, chatWithTutor } from '../utils/claude';
+import { useAuth } from '../context/AuthContext';
+import { supabase } from '../utils/supabase';
 
 // ─── Level config ─────────────────────────────────────────────────────────────
 const LEVELS = [
@@ -423,15 +425,20 @@ function LessonDetail({ lesson, lang, onBack, onStartQuiz, onStartSentences }) {
 
 // ─── Main Lessons page ────────────────────────────────────────────────────────
 export default function Lessons() {
+  const { user, profile, refreshProfile } = useAuth();
   const [selectedLang, setSelectedLang] = useState('bhojpuri');
   const [activeLevel, setActiveLevel] = useState(1);
   const [selectedLesson, setSelectedLesson] = useState(null);
   const [mode, setMode] = useState('list'); // list | words | wordquiz | sentences | paragraphs
-  const [xp, setXp] = useState(0);
+  const [xp, setXp] = useState(profile?.xp || 0);
   const [customTopic, setCustomTopic] = useState('');
   const [generating, setGenerating] = useState(false);
   const [, setAiLesson] = useState(null);
   const [error, setError] = useState('');
+ 
+  useEffect(() => {
+    if (profile?.xp) setXp(profile.xp);
+  }, [profile]);
 
   const currentLang = LANGUAGES.find(l => l.code === selectedLang);
   const lessons = LESSONS_DATA[selectedLang] || [];
@@ -447,9 +454,18 @@ export default function Lessons() {
     setError('');
   }
 
-  function handleComplete(score) {
-    if (score >= 3) setXp(x => Math.min(x + 2, 10));
+ async function handleComplete(score) {
+  if (score >= 3) {
+    const newXp = Math.min(xp + 2, 10);
+    setXp(newXp);
+    if (user) {
+      await supabase
+        .from('profiles')
+        .update({ xp: newXp })
+        .eq('id', user.id);
+    }
   }
+}
 
   async function generate() {
     if (!customTopic.trim()) return;
