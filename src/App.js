@@ -8,6 +8,7 @@ import Lessons from './pages/Lessons';
 import Quiz from './pages/Quiz';
 import Flashcards from './pages/Flashcards';
 import Daily from './pages/Daily';
+import './index.css';
 
 function AppLayout() {
   const { user, loading } = useAuth();
@@ -28,15 +29,23 @@ function AppLayout() {
   return (
     <div style={{ display: 'flex', minHeight: '100vh' }}>
       <Sidebar />
-      <main style={{ marginLeft: 220, flex: 1, padding: '2.5rem 2rem', minHeight: '100vh', background: '#FAF6F0' }}>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/lessons" element={<Lessons />} />
-          <Route path="/quiz" element={<Quiz />} />
-          <Route path="/flashcards" element={<Flashcards />} />
-          <Route path="/daily" element={<Daily />} />
-          <Route path="*" element={<Navigate to="/" />} />
-        </Routes>
+      <main className="app-main" style={{
+        flex: 1,
+        minHeight: '100vh',
+        background: '#FAF6F0',
+        display: 'flex',
+        justifyContent: 'center',
+      }}>
+        <div style={{ width: '100%', maxWidth: 780 }}>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/lessons" element={<Lessons />} />
+            <Route path="/quiz" element={<Quiz />} />
+            <Route path="/flashcards" element={<Flashcards />} />
+            <Route path="/daily" element={<Daily />} />
+            <Route path="*" element={<Navigate to="/" />} />
+          </Routes>
+        </div>
       </main>
       <AiTutor />
     </div>

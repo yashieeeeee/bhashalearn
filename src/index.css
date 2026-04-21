@@ -62,11 +62,25 @@ body {
 .mobile-bottomnav { display: none !important; }
 .app-main { margin-left: 220px; padding: 2.5rem 2rem; }
 
+/* Auth page */
+.auth-left { display: flex; }
+.auth-right { width: 460px; }
+.mobile-logo { display: none; }
+
 @media (max-width: 768px) {
   /* Hide desktop sidebar, show mobile nav */
   .desktop-sidebar { display: none !important; }
   .mobile-topbar { display: flex !important; }
   .mobile-bottomnav { display: flex !important; }
+
+  /* Auth page — hide left panel, full width right */
+  .auth-left { display: none !important; }
+  .auth-right {
+    width: 100% !important;
+    padding: 2rem 1.25rem !important;
+    min-height: 100vh;
+  }
+  .mobile-logo { display: block !important; }
 
   /* Main content area */
   .app-main {
