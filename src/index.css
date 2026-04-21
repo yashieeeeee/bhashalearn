@@ -53,3 +53,89 @@ body {
 .fade-up-3 { animation: fadeUp 0.4s 0.16s ease both; }
 .fade-up-4 { animation: fadeUp 0.4s 0.24s ease both; }
 .fade-up-5 { animation: fadeUp 0.4s 0.32s ease both; }
+
+/* ── Responsive Layout ─────────────────────────────────────────────────────── */
+
+/* Desktop sidebar visible, mobile nav hidden */
+.desktop-sidebar { display: flex !important; }
+.mobile-topbar { display: none !important; }
+.mobile-bottomnav { display: none !important; }
+.app-main { margin-left: 220px; padding: 2.5rem 2rem; }
+
+@media (max-width: 768px) {
+  /* Hide desktop sidebar, show mobile nav */
+  .desktop-sidebar { display: none !important; }
+  .mobile-topbar { display: flex !important; }
+  .mobile-bottomnav { display: flex !important; }
+
+  /* Main content area */
+  .app-main {
+    margin-left: 0 !important;
+    padding: 72px 1rem 90px !important;
+    width: 100% !important;
+  }
+
+  /* Make all max-width containers full width */
+  div[style*="maxWidth"] {
+    max-width: 100% !important;
+  }
+
+  /* Auth page — stack vertically on mobile */
+  .auth-left { display: none !important; }
+  .auth-right {
+    width: 100% !important;
+    padding: 1.5rem 1.25rem !important;
+  }
+
+  /* Stats grid — 3 cols on mobile is too tight, keep but shrink padding */
+  div[style*="gridTemplateColumns: 'repeat(3,1fr)'"],
+  div[style*='gridTemplateColumns: "repeat(3,1fr)"'] {
+    gap: 8px !important;
+  }
+
+  /* Lesson word cards — smaller font */
+  div[style*="fontSize: 44"] { font-size: 32px !important; }
+  div[style*="fontSize: 48"] { font-size: 32px !important; }
+  div[style*="fontSize: 28"] { font-size: 22px !important; }
+
+  /* Quiz options grid — single column on very small screens */
+  div[style*="gridTemplateColumns: '1fr 1fr'"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Language selector — smaller pills */
+  button[style*="borderRadius: 99"] {
+    font-size: 12px !important;
+    padding: 6px 10px !important;
+  }
+
+  /* Flashcard — smaller */
+  div[style*="minHeight: 240"] {
+    min-height: 180px !important;
+    padding: 1.5rem 1rem !important;
+  }
+
+  /* AI Tutor chat — full width on mobile */
+  div[style*="width: 340px"][style*="position: fixed"] {
+    width: calc(100vw - 32px) !important;
+    right: 16px !important;
+  }
+
+  /* Daily practice textarea */
+  textarea { font-size: 14px !important; }
+
+  /* Headings */
+  h1[style*="fontSize: 28"], div[style*="fontSize: 32"] {
+    font-size: 22px !important;
+  }
+}
+
+@media (max-width: 400px) {
+  .app-main {
+    padding: 68px 0.75rem 88px !important;
+  }
+
+  /* Even smaller on tiny phones */
+  div[style*="fontSize: 44"] { font-size: 26px !important; }
+  div[style*="padding: '2rem'"] { padding: 1.25rem !important; }
+}
