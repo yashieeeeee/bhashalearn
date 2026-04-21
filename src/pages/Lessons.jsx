@@ -430,15 +430,16 @@ export default function Lessons() {
   const [activeLevel, setActiveLevel] = useState(1);
   const [selectedLesson, setSelectedLesson] = useState(null);
   const [mode, setMode] = useState('list'); // list | words | wordquiz | sentences | paragraphs
-  const [xp, setXp] = useState(profile?.xp || 0);
+  const [xpMap, setXpMap] = useState({});
+  const xp = xpMap[selectedLang] || 0;
   const [customTopic, setCustomTopic] = useState('');
   const [generating, setGenerating] = useState(false);
   const [, setAiLesson] = useState(null);
   const [error, setError] = useState('');
  
   useEffect(() => {
-    if (profile?.xp) setXp(profile.xp);
-  }, [profile]);
+  if (profile?.xp_map) setXpMap(profile.xp_map);
+}, [profile]);
 
   const currentLang = LANGUAGES.find(l => l.code === selectedLang);
   const lessons = LESSONS_DATA[selectedLang] || [];
@@ -456,13 +457,11 @@ export default function Lessons() {
 
  async function handleComplete(score) {
   if (score >= 3) {
-    const newXp = Math.min(xp + 2, 10);
-    setXp(newXp);
+    const newXp = Math.min((xpMap[selectedLang] || 0) + 2, 10);
+    const newMap = { ...xpMap, [selectedLang]: newXp };
+    setXpMap(newMap);
     if (user) {
-      await supabase
-        .from('profiles')
-        .update({ xp: newXp })
-        .eq('id', user.id);
+      await supabase.from('profiles').update({ xp_map: newMap }).eq('id', user.id);
     }
   }
 }
