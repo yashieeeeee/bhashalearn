@@ -8,6 +8,10 @@ import Lessons from './pages/Lessons';
 import Quiz from './pages/Quiz';
 import Flashcards from './pages/Flashcards';
 import Daily from './pages/Daily';
+import Achievements from './pages/Achievements';
+import Analytics from './pages/Analytics';
+import Pronunciation from './pages/Pronunciation';
+import LearningPath from './pages/LearningPath';
 import './index.css';
 
 function AppLayout() {
@@ -19,7 +23,7 @@ function AppLayout() {
         <div style={{ fontFamily: "'Playfair Display',serif", fontSize: 28, fontWeight: 700, color: '#1A1208' }}>
           Bhasha<span style={{ color: '#E8611A' }}>Learn</span>
         </div>
-        <div style={{ fontSize: 14, color: '#7A6552', marginTop: 8 }}>Loading your profile...</div>
+        <div style={{ fontSize: 14, color: '#7A6552', marginTop: 8 }}>Loading...</div>
       </div>
     </div>
   );
@@ -29,13 +33,7 @@ function AppLayout() {
   return (
     <div style={{ display: 'flex', minHeight: '100vh' }}>
       <Sidebar />
-      <main className="app-main" style={{
-        flex: 1,
-        minHeight: '100vh',
-        background: '#FAF6F0',
-        display: 'flex',
-        justifyContent: 'center',
-      }}>
+      <main className="app-main" style={{ flex: 1, minHeight: '100vh', background: '#FAF6F0', display: 'flex', justifyContent: 'center' }}>
         <div style={{ width: '100%', maxWidth: 780 }}>
           <Routes>
             <Route path="/" element={<Home />} />
@@ -43,6 +41,10 @@ function AppLayout() {
             <Route path="/quiz" element={<Quiz />} />
             <Route path="/flashcards" element={<Flashcards />} />
             <Route path="/daily" element={<Daily />} />
+            <Route path="/achievements" element={<Achievements />} />
+            <Route path="/analytics" element={<Analytics />} />
+            <Route path="/pronunciation" element={<Pronunciation />} />
+            <Route path="/path" element={<LearningPath />} />
             <Route path="*" element={<Navigate to="/" />} />
           </Routes>
         </div>
