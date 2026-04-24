@@ -138,6 +138,7 @@ export default function Achievements() {
   const totalXp = profile?.total_xp || 0;
 
   // Check for newly earned badges
+ // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (!profile) return;
     const justEarned = BADGES

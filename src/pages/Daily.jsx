@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { LANGUAGES, LESSONS_DATA } from '../data/content';
 import { checkTranslation } from '../utils/claude';
 import { useAuth } from '../context/AuthContext';
-
+import { supabase } from '../utils/supabase';
 const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
 // Word of the day per language — rotates daily
@@ -229,7 +229,7 @@ const ALL_CHALLENGES = {
 };
 
 export default function Daily() {
-  const { profile } = useAuth();
+  const { profile, user } = useAuth();
   const streak = profile?.streak || 0;
   const [selectedLang, setSelectedLang] = useState('bhojpuri');
   const [answer, setAnswer] = useState('');
@@ -263,6 +263,15 @@ export default function Daily() {
     setLoading(true); setChecked(false);
     try {
       const result = await checkTranslation(challenge.hindi, answer.trim(), challenge.answer, currentLang?.name);
+setFeedback(result); setChecked(true);
+
+// If correct, add XP
+if (result.startsWith('Bahut badhiya') && user) {
+  await supabase.from('profiles').update({
+    total_xp: (profile?.total_xp || 0) + 3,
+    daily_completed: (profile?.daily_completed || 0) + 1,
+  }).eq('id', user.id);
+}
       setFeedback(result); setChecked(true);
     } catch (e) {
       setFeedback('Could not connect. Please try again.'); setChecked(true);

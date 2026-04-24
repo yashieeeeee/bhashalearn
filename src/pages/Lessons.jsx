@@ -456,13 +456,15 @@ export default function Lessons() {
   }
 
  async function handleComplete(score) {
-  if (score >= 3) {
+  if (score >= 3 && user) {
     const newXp = Math.min((xpMap[selectedLang] || 0) + 2, 10);
     const newMap = { ...xpMap, [selectedLang]: newXp };
     setXpMap(newMap);
-    if (user) {
-      await supabase.from('profiles').update({ xp_map: newMap }).eq('id', user.id);
-    }
+    await supabase.from('profiles').update({
+      xp_map: newMap,
+      total_xp: (profile?.total_xp || 0) + 2,
+      lessons_completed: (profile?.lessons_completed || 0) + 1,
+    }).eq('id', user.id);
   }
 }
 

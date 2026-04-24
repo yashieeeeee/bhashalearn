@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { LESSONS_DATA } from '../data/content';
 import { useAuth } from '../context/AuthContext';
-import { saveQuizScore, getQuizScores } from '../utils/supabase';
+import { saveQuizScore, getQuizScores, supabase } from '../utils/supabase';
 import { generateQuiz } from '../utils/claude';
 
 export default function Quiz() {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const [selectedLang, setSelectedLang] = useState('bhojpuri');
   const [questions, setQuestions] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -19,19 +19,20 @@ export default function Quiz() {
 
   const LANGS = ['bhojpuri','tamil','telugu','marathi','bengali','gujarati','kannada','malayalam','punjabi','odia','urdu','assamese'];
 
-async function startQuiz(lang) {
-  if (loading) return;
-  setLoading(true); setSelectedLang(lang);
-  const allWords = (LESSONS_DATA[lang] || []).flatMap(l => l.words).slice(0, 12);
-  try {
-    const data = await generateQuiz(allWords);
-    setQuestions(data.questions);
-    setQIndex(0); setScore(0); setSelected(null); setDone(false); setSaved(false);
-  } catch (e) {
-    alert('Quiz error: ' + e.message);
+  async function startQuiz(lang) {
+    if (loading) return;
+    setLoading(true); setSelectedLang(lang);
+    const allWords = (LESSONS_DATA[lang] || []).flatMap(l => l.words).slice(0, 12);
+    try {
+      const data = await generateQuiz(allWords);
+      setQuestions(data.questions);
+      setQIndex(0); setScore(0); setSelected(null); setDone(false); setSaved(false);
+    } catch (e) {
+      alert('Quiz error: ' + e.message);
+    }
+    setLoading(false);
   }
-  setLoading(false);
-}
+
   function pick(i) {
     if (selected !== null || !questions) return;
     setSelected(i);
@@ -44,7 +45,15 @@ async function startQuiz(lang) {
       setDone(true);
       const finalScore = score + (selected === questions[qIndex].correct ? 1 : 0);
       if (user && !saved) {
+        // Save quiz score
         await saveQuizScore(user.id, finalScore, questions.length, selectedLang);
+        // Update XP and perfect quiz count in profile
+        await supabase.from('profiles').update({
+          total_xp: (profile?.total_xp || 0) + finalScore,
+          perfect_quizzes: finalScore === questions.length
+            ? (profile?.perfect_quizzes || 0) + 1
+            : (profile?.perfect_quizzes || 0),
+        }).eq('id', user.id);
         setSaved(true);
       }
       return;
@@ -82,23 +91,25 @@ async function startQuiz(lang) {
     </div>
   );
 
-  // Language picker
   if (!questions && !loading) return (
     <div style={{ maxWidth: 600 }}>
       <div className="fade-up" style={{ marginBottom: '1.5rem' }}>
         <h1 style={{ fontFamily: "'Playfair Display',serif", fontSize: 28, fontWeight: 700, color: '#1A1208' }}>Quiz</h1>
-        <p style={{ fontSize: 14, color: '#7A6552', marginTop: 4 }}>Pick a language — Claude will generate 5 questions for you!</p>
+        <p style={{ fontSize: 14, color: '#7A6552', marginTop: 4 }}>Pick a language — AI generates 5 questions for you!</p>
       </div>
       <div className="fade-up-2" style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginBottom: '1.5rem' }}>
         {LANGS.map(lang => (
-          <button key={lang} onClick={() => startQuiz(lang)} style={{ padding: '10px 18px', borderRadius: 10, border: '0.5px solid rgba(26,18,8,0.12)', background: '#fff', color: '#1A1208', fontSize: 14, fontWeight: 500, cursor: 'pointer', textTransform: 'capitalize', transition: 'all 0.15s' }}
+          <button key={lang} onClick={() => startQuiz(lang)}
+            style={{ padding: '10px 18px', borderRadius: 10, border: '0.5px solid rgba(26,18,8,0.12)', background: '#fff', color: '#1A1208', fontSize: 14, fontWeight: 500, cursor: 'pointer', textTransform: 'capitalize', transition: 'all 0.15s' }}
             onMouseEnter={e => { e.currentTarget.style.background = '#1A1208'; e.currentTarget.style.color = '#FAF6F0'; }}
             onMouseLeave={e => { e.currentTarget.style.background = '#fff'; e.currentTarget.style.color = '#1A1208'; }}>
             {lang}
           </button>
         ))}
       </div>
-      <button onClick={loadHistory} style={{ background: '#FBF3E2', color: '#C8912A', border: '0.5px solid #C8912A44', borderRadius: 10, padding: '10px 20px', fontSize: 14, fontWeight: 500, cursor: 'pointer' }}>View past scores</button>
+      <button onClick={loadHistory} style={{ background: '#FBF3E2', color: '#C8912A', border: '0.5px solid #C8912A44', borderRadius: 10, padding: '10px 20px', fontSize: 14, fontWeight: 500, cursor: 'pointer' }}>
+        View past scores
+      </button>
     </div>
   );
 
@@ -106,16 +117,18 @@ async function startQuiz(lang) {
     <div style={{ textAlign: 'center', padding: '4rem 0' }} className="fade-up">
       <div style={{ fontSize: 36, marginBottom: 16 }}>⚡</div>
       <div style={{ fontFamily: "'Playfair Display',serif", fontSize: 20, color: '#1A1208', textTransform: 'capitalize' }}>Generating {selectedLang} quiz...</div>
-      <div style={{ fontSize: 14, color: '#7A6552', marginTop: 8 }}>Claude is writing your questions</div>
+      <div style={{ fontSize: 14, color: '#7A6552', marginTop: 8 }}>Building your questions...</div>
     </div>
   );
 
   if (done) return (
     <div style={{ maxWidth: 480, margin: '0 auto', textAlign: 'center' }} className="fade-up">
       <div style={{ fontSize: 56, marginBottom: '1rem' }}>{score >= 4 ? '🏆' : score >= 2 ? '👍' : '💪'}</div>
-      <h2 style={{ fontFamily: "'Playfair Display',serif", fontSize: 28, fontWeight: 700, color: '#1A1208', marginBottom: 8 }}>{score >= 4 ? 'Bahut Badhiya!' : score >= 2 ? 'Neeek Rahe!' : 'Keep Practicing!'}</h2>
+      <h2 style={{ fontFamily: "'Playfair Display',serif", fontSize: 28, fontWeight: 700, color: '#1A1208', marginBottom: 8 }}>
+        {score >= 4 ? 'Bahut Badhiya!' : score >= 2 ? 'Neeek Rahe!' : 'Keep Practicing!'}
+      </h2>
       <p style={{ fontSize: 15, color: '#7A6552', marginBottom: '0.5rem' }}>You scored {score} out of {questions.length}</p>
-      {saved && <p style={{ fontSize: 13, color: '#0D6E6E', marginBottom: '1.5rem' }}>✓ Score saved!</p>}
+      {saved && <p style={{ fontSize: 13, color: '#0D6E6E', marginBottom: '1.5rem' }}>✓ Score saved! +{score} XP earned!</p>}
       <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
         <button onClick={() => startQuiz(selectedLang)} style={{ background: '#1A1208', color: '#FAF6F0', border: 'none', borderRadius: 10, padding: '12px 24px', fontSize: 14, fontWeight: 500, cursor: 'pointer' }}>Try Again</button>
         <button onClick={reset} style={{ background: '#FDF0E8', color: '#E8611A', border: '0.5px solid #E8611A44', borderRadius: 10, padding: '12px 24px', fontSize: 14, fontWeight: 500, cursor: 'pointer' }}>Change Language</button>
@@ -147,9 +160,12 @@ async function startQuiz(lang) {
             else if (i === selected && i !== q.correct) { bg = '#FDF0E8'; border = '#E8611A'; color = '#E8611A'; }
           }
           return (
-            <button key={i} onClick={() => pick(i)} style={{ background: bg, border: `1.5px solid ${border}`, borderRadius: 12, padding: '14px 10px', fontSize: 14, fontWeight: 500, color, cursor: selected !== null ? 'default' : 'pointer', transition: 'all 0.18s', fontFamily: "'Noto Sans Devanagari','DM Sans',sans-serif" }}
+            <button key={i} onClick={() => pick(i)}
+              style={{ background: bg, border: `1.5px solid ${border}`, borderRadius: 12, padding: '14px 10px', fontSize: 14, fontWeight: 500, color, cursor: selected !== null ? 'default' : 'pointer', transition: 'all 0.18s', fontFamily: "'Noto Sans Devanagari','DM Sans',sans-serif" }}
               onMouseEnter={e => selected === null && (e.currentTarget.style.borderColor = '#E8611A')}
-              onMouseLeave={e => selected === null && (e.currentTarget.style.borderColor = 'rgba(26,18,8,0.12)')}>{opt}</button>
+              onMouseLeave={e => selected === null && (e.currentTarget.style.borderColor = 'rgba(26,18,8,0.12)')}>
+              {opt}
+            </button>
           );
         })}
       </div>
@@ -158,7 +174,8 @@ async function startQuiz(lang) {
           <div className="fade-up" style={{ marginBottom: '1rem', padding: '12px 16px', borderRadius: 10, background: selected === q.correct ? '#E0F2F2' : '#FDF0E8', color: selected === q.correct ? '#0D6E6E' : '#E8611A', fontSize: 14, fontWeight: 500 }}>
             {selected === q.correct ? '✓ Sahi ba! Bahut badhiya!' : `✗ Galat! Sahi jawab: ${q.options[q.correct]}`}
           </div>
-          <button className="fade-up" onClick={next} style={{ width: '100%', background: '#1A1208', color: '#FAF6F0', border: 'none', borderRadius: 12, padding: '14px', fontSize: 15, fontWeight: 500, cursor: 'pointer' }}>
+          <button className="fade-up" onClick={next}
+            style={{ width: '100%', background: '#1A1208', color: '#FAF6F0', border: 'none', borderRadius: 12, padding: '14px', fontSize: 15, fontWeight: 500, cursor: 'pointer' }}>
             {qIndex + 1 >= questions.length ? 'See results →' : 'Next question →'}
           </button>
         </>
