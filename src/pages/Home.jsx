@@ -70,15 +70,14 @@ export default function Home() {
         </div>
       )}
 
-
-      <div style={{ background: '#FBF3E2', border: '0.5px solid rgba(200,145,42,0.25)', borderRadius: 14, padding: '1.25rem' }}>
-  <div style={{ fontSize: 11, fontWeight: 500, color: '#C8912A', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 10 }}>
-    🌍 Word of the day
-  </div>
-  <div style={{ fontSize: 13, color: '#7A6552' }}>
-    Go to <strong>Daily Practice</strong> and select your language to see today's word! 🎯
-  </div>
-</div>
-
+<div style={{ background: '#FBF3E2', border: '0.5px solid rgba(200,145,42,0.25)', borderRadius: 14, padding: '1.25rem' }}>
+        <div style={{ fontSize: 11, fontWeight: 500, color: '#C8912A', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 10 }}>
+          🌍 Word of the day
+        </div>
+        <div style={{ fontSize: 13, color: '#7A6552' }}>
+          Go to <strong>Daily Practice</strong> and select your language to see today's word! 🎯
+        </div>
+      </div>
+    </div>
   );
 }
