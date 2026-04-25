@@ -155,7 +155,7 @@ export default function Achievements() {
       const allBadges = [...new Set([...earnedBadgeIds, ...justEarned])];
       supabase.from('profiles').update({ badges: allBadges }).eq('id', user.id);
     }
-  }, [profile]);
+  }, [profile]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // XP level calculation
   const level = Math.floor(totalXp / 20) + 1;

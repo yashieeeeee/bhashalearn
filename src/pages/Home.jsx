@@ -1,7 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { lessons, wordOfDay } from '../data/content';
-
+import { lessons } from '../data/content';
 const days = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 
 export default function Home() {
