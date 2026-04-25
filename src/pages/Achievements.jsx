@@ -72,7 +72,8 @@ function Leaderboard() {
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
 
-  useEffect(() => {
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+useEffect(() => {
     async function load() {
       const { data } = await supabase
         .from('profiles')

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { LANGUAGES, LESSONS_DATA } from '../data/content';
+import { LANGUAGES } from '../data/content';
 import { useNavigate } from 'react-router-dom';
 
 const GOALS = [
@@ -60,7 +60,8 @@ export default function LearningPath() {
 
   // Generate roadmap based on choices
   function generateRoadmap() {
-    const pace = PACES.find(p => p.id === selectedPace);
+    // eslint-disable-next-line no-unused-vars
+const pace = PACES.find(p => p.id === selectedPace);
     const langXp = xpMap[selectedLang] || 0;
     const langLevel = langXp >= 8 ? 3 : langXp >= 4 ? 2 : 1;
 
@@ -81,7 +82,8 @@ export default function LearningPath() {
   const currentStepIndex = roadmap?.findIndex(s => !s.done) ?? 0;
 
   // Weekly schedule based on pace
-  const pace = PACES.find(p => p.id === selectedPace);
+  // eslint-disable-next-line no-unused-vars
+const pace = PACES.find(p => p.id === selectedPace);
   const schedule = [
     { day: 'Mon', activity: '📖 New lesson + flashcards' },
     { day: 'Tue', activity: '⚡ Quiz practice' },

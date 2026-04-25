@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { LANGUAGES, LESSONS_DATA } from '../data/content';
+import { LANGUAGES } from '../data/content';
 import { checkTranslation } from '../utils/claude';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../utils/supabase';
@@ -263,7 +263,7 @@ export default function Daily() {
     setLoading(true); setChecked(false);
     try {
       const result = await checkTranslation(challenge.hindi, answer.trim(), challenge.answer, currentLang?.name);
-setFeedback(result); setChecked(true);
+
 
 // If correct, add XP
 if (result.startsWith('Bahut badhiya') && user) {

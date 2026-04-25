@@ -70,14 +70,15 @@ export default function Home() {
         </div>
       )}
 
-      {/* Word of the day */}
-      <div className="fade-up-5" style={{ background: '#FBF3E2', border: '0.5px solid rgba(200,145,42,0.25)', borderRadius: 14, padding: '1.25rem' }}>
-        <div style={{ fontSize: 11, fontWeight: 500, color: '#C8912A', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 10 }}>Word of the day</div>
-        <div style={{ fontFamily: "'Noto Sans Devanagari', sans-serif", fontSize: 28, fontWeight: 500, color: '#1A1208' }}>{wordOfDay.hindi}</div>
-        <div style={{ fontSize: 16, fontWeight: 500, color: '#C8912A', marginTop: 2 }}>{wordOfDay.bhojpuri}</div>
-        <div style={{ fontSize: 13, color: '#7A6552', marginTop: 6, lineHeight: 1.5 }}>{wordOfDay.meaning}</div>
-        <div style={{ fontSize: 12, color: '#7A6552', marginTop: 8, fontStyle: 'italic' }}>{wordOfDay.example}</div>
-      </div>
-    </div>
+
+      <div style={{ background: '#FBF3E2', border: '0.5px solid rgba(200,145,42,0.25)', borderRadius: 14, padding: '1.25rem' }}>
+  <div style={{ fontSize: 11, fontWeight: 500, color: '#C8912A', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 10 }}>
+    🌍 Word of the day
+  </div>
+  <div style={{ fontSize: 13, color: '#7A6552' }}>
+    Go to <strong>Daily Practice</strong> and select your language to see today's word! 🎯
+  </div>
+</div>
+
   );
 }

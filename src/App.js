@@ -42,9 +42,10 @@ function AppLayout() {
             <Route path="/flashcards" element={<Flashcards />} />
             <Route path="/daily" element={<Daily />} />
             <Route path="/achievements" element={<Achievements />} />
-            <Route path="/analytics" element={<Analytics />} />
-            <Route path="/pronunciation" element={<Pronunciation />} />
-            <Route path="/path" element={<LearningPath />} />
+             <Route path="/analytics" element={<Analytics />} />
+             <Route path="/pronunciation" element={<Pronunciation />} />
+             <Route path="/path" element={<LearningPath />} />
+
             <Route path="*" element={<Navigate to="/" />} />
           </Routes>
         </div>
