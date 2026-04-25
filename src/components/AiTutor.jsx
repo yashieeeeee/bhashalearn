@@ -40,7 +40,7 @@ export default function AiTutor() {
         onClick={() => setOpen(!open)}
         style={{
           position: "fixed",
-          bottom: "24px",
+          bottom: "90px",
           right: "24px",
           width: "56px",
           height: "56px",
@@ -67,7 +67,7 @@ export default function AiTutor() {
         <div
           style={{
             position: "fixed",
-            bottom: "92px",
+            bottom: "156px",
             right: "24px",
             width: "340px",
             height: "460px",
