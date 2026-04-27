@@ -2,8 +2,10 @@ import { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { signOut } from '../utils/supabase';
+import { useTheme } from '../context/ThemeContext';
 
 const navItems = [
+  { to: '/bookmarks', icon: '🔖', label: 'Bookmarks' },
   { to: '/', icon: '🏠', label: 'Home' },
   { to: '/lessons', icon: '📖', label: 'Lessons' },
   { to: '/quiz', icon: '⚡', label: 'Quiz' },
@@ -26,6 +28,7 @@ const mobileNavItems = [
 
 export default function Sidebar() {
   const { user, profile } = useAuth();
+  const { dark, toggle } = useTheme();
   const [menuOpen, setMenuOpen] = useState(false);
   const name = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Learner';
   const initials = name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
@@ -99,6 +102,15 @@ export default function Sidebar() {
             onMouseLeave={e => e.currentTarget.style.color = 'rgba(250,246,240,0.4)'}>
             Sign out
           </button>
+          <button onClick={toggle} style={{ 
+  width: '100%', background: 'transparent', 
+  border: '0.5px solid rgba(250,246,240,0.12)', 
+  borderRadius: 8, padding: '8px', fontSize: 12, 
+  color: 'rgba(250,246,240,0.6)', cursor: 'pointer', 
+  marginBottom: 8 
+}}>
+  {dark ? '☀️ Light Mode' : '🌙 Dark Mode'}
+</button>
         </div>
       </aside>
 

@@ -23,6 +23,21 @@
   --shadow-md: 0 4px 32px rgba(26,18,8,0.12);
 }
 
+[data-theme="dark"] .app-main,
+[data-theme="dark"] .app-main > div {
+  background: #0F0A06 !important;
+  color: #FAF6F0 !important;
+}
+
+[data-theme="dark"] .app-main * {
+  border-color: rgba(250,246,240,0.1) !important;
+}
+
+[data-theme="dark"] .app-main div[style] {
+  background-color: #1A1208 !important;
+  color: #FAF6F0 !important;
+}
+
 html { font-size: 16px; }
 body {
   font-family: 'DM Sans', sans-serif;

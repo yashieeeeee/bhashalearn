@@ -1,3 +1,4 @@
+import { useTheme } from './context/ThemeContext';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Sidebar from './components/Sidebar';
@@ -13,10 +14,11 @@ import Analytics from './pages/Analytics';
 import Pronunciation from './pages/Pronunciation';
 import LearningPath from './pages/LearningPath';
 import './index.css';
+import { ThemeProvider } from './context/ThemeContext';
 
 function AppLayout() {
   const { user, loading } = useAuth();
-
+  const { dark } = useTheme();
   if (loading) return (
     <div style={{ minHeight: '100vh', background: '#FAF6F0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <div style={{ textAlign: 'center' }}>
@@ -31,9 +33,9 @@ function AppLayout() {
   if (!user) return <Auth />;
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh' }}>
+    <div style={{ display: 'flex', minHeight: '100vh', background: dark ? '#0F0A06' : '#FAF6F0' }}>
       <Sidebar />
-      <main className="app-main" style={{ flex: 1, minHeight: '100vh', background: '#FAF6F0', display: 'flex', justifyContent: 'center' }}>
+      <main className="app-main" style={{ flex: 1, minHeight: '100vh', background: dark ? '#0F0A06' : '#FAF6F0',  display: 'flex', justifyContent: 'center' }}>
         <div style={{ width: '100%', maxWidth: 780 }}>
           <Routes>
             <Route path="/" element={<Home />} />
@@ -57,10 +59,12 @@ function AppLayout() {
 
 export default function App() {
   return (
-    <AuthProvider>
-      <BrowserRouter>
-        <AppLayout />
-      </BrowserRouter>
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <BrowserRouter>
+          <AppLayout />
+        </BrowserRouter>
+      </AuthProvider>
+    </ThemeProvider>
   );
 }

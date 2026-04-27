@@ -4,14 +4,27 @@ import { generateLesson, generateQuiz, chatWithTutor } from '../utils/claude';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../utils/supabase';
 
-// ─── Level config ─────────────────────────────────────────────────────────────
 const LEVELS = [
   { id: 1, name: 'Words', icon: '🔤', desc: 'Learn individual words', color: '#0D6E6E', bg: '#E0F2F2', xpNeeded: 0 },
   { id: 2, name: 'Sentences', icon: '💬', desc: 'Build simple sentences', color: '#E8611A', bg: '#FDF0E8', xpNeeded: 3 },
   { id: 3, name: 'Paragraphs', icon: '📖', desc: 'Read & translate full passages', color: '#7C3AED', bg: '#F5F3FF', xpNeeded: 6 },
 ];
 
-// ─── Paragraph practice component ────────────────────────────────────────────
+// ─── Text to Speech ───────────────────────────────────────────────────────────
+function speak(text, langCode) {
+  const langMap = {
+    hindi: 'hi-IN', bhojpuri: 'hi-IN', tamil: 'ta-IN', telugu: 'te-IN',
+    marathi: 'mr-IN', bengali: 'bn-IN', gujarati: 'gu-IN', punjabi: 'pa-IN',
+    kannada: 'kn-IN', malayalam: 'ml-IN', urdu: 'ur-IN', odia: 'or-IN', assamese: 'as-IN',
+  };
+  window.speechSynthesis.cancel();
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.lang = langMap[langCode] || 'hi-IN';
+  utterance.rate = 0.8;
+  window.speechSynthesis.speak(utterance);
+}
+
+// ─── Paragraph Mode ───────────────────────────────────────────────────────────
 function ParagraphMode({ lang, onBack }) {
   const [paragraph, setParagraph] = useState('');
   const [translation, setTranslation] = useState('');
@@ -37,7 +50,7 @@ function ParagraphMode({ lang, onBack }) {
       const transMatch = text.match(/TRANSLATION:\s*([\s\S]*?)$/i);
       if (hindiMatch) setParagraph(hindiMatch[1].trim());
       if (transMatch) setTranslation(transMatch[1].trim());
-    } catch (e) {
+    } catch {
       setParagraph('Could not generate paragraph. Please try again.');
     }
     setGenerating(false);
@@ -52,13 +65,11 @@ function ParagraphMode({ lang, onBack }) {
         Hindi: "${paragraph}"
         Correct ${lang.name} translation: "${translation}"
         Student's attempt: "${userAnswer}"
-        
-        Give encouraging feedback in 3-4 sentences. Point out what they got right and gently correct mistakes. 
-        If they got it mostly right, start with "Bahut badhiya!"`,
+        Give encouraging feedback in 3-4 sentences. If mostly right, start with "Bahut badhiya!"`,
         lang.name
       );
       setFeedback(result);
-    } catch (e) {
+    } catch {
       setFeedback('Could not check. Please try again.');
     }
     setLoading(false);
@@ -67,7 +78,6 @@ function ParagraphMode({ lang, onBack }) {
   return (
     <div className="fade-up" style={{ maxWidth: 640 }}>
       <button onClick={onBack} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#7A6552', fontSize: 14, marginBottom: '1.5rem', padding: 0 }}>← Back to levels</button>
-
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: '1.5rem' }}>
         <div style={{ width: 48, height: 48, background: '#F5F3FF', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24 }}>📖</div>
         <div>
@@ -75,8 +85,6 @@ function ParagraphMode({ lang, onBack }) {
           <p style={{ fontSize: 13, color: '#7A6552', margin: 0 }}>Read Hindi, translate to {lang?.name}</p>
         </div>
       </div>
-
-      {/* Topic generator */}
       <div style={{ background: '#1A1208', borderRadius: 14, padding: '1.25rem', marginBottom: '1.5rem' }}>
         <div style={{ fontSize: 11, color: 'rgba(250,246,240,0.4)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>✨ Generate a paragraph</div>
         <div style={{ display: 'flex', gap: 8 }}>
@@ -84,38 +92,32 @@ function ParagraphMode({ lang, onBack }) {
             placeholder="Topic: My family, Morning routine, Indian food..."
             style={{ flex: 1, background: 'rgba(250,246,240,0.08)', border: '0.5px solid rgba(250,246,240,0.15)', borderRadius: 10, padding: '10px 13px', fontSize: 14, color: '#FAF6F0', outline: 'none' }} />
           <button onClick={generateParagraph} disabled={!topic.trim() || generating}
-            style={{ background: topic.trim() && !generating ? '#7C3AED' : 'rgba(250,246,240,0.1)', color: topic.trim() && !generating ? '#FAF6F0' : 'rgba(250,246,240,0.3)', border: 'none', borderRadius: 10, padding: '10px 18px', fontSize: 14, fontWeight: 500, cursor: topic.trim() && !generating ? 'pointer' : 'default', whiteSpace: 'nowrap' }}>
+            style={{ background: topic.trim() && !generating ? '#7C3AED' : 'rgba(250,246,240,0.1)', color: topic.trim() && !generating ? '#FAF6F0' : 'rgba(250,246,240,0.3)', border: 'none', borderRadius: 10, padding: '10px 18px', fontSize: 14, fontWeight: 500, cursor: 'pointer', whiteSpace: 'nowrap' }}>
             {generating ? 'Generating...' : 'Generate →'}
           </button>
         </div>
       </div>
-
-      {/* Paragraph display */}
       {paragraph && (
         <>
           <div style={{ background: '#fff', border: '0.5px solid rgba(26,18,8,0.1)', borderRadius: 14, padding: '1.5rem', marginBottom: '1rem' }}>
             <div style={{ fontSize: 11, fontWeight: 600, color: '#7A6552', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 12 }}>Hindi Paragraph — Translate this</div>
             <p style={{ fontFamily: "'Noto Sans Devanagari',sans-serif", fontSize: 18, color: '#1A1208', lineHeight: 1.8, margin: 0 }}>{paragraph}</p>
           </div>
-
           <div style={{ background: '#1A1208', borderRadius: 14, padding: '1.5rem', marginBottom: '1rem' }}>
             <div style={{ fontSize: 11, color: 'rgba(250,246,240,0.4)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 10 }}>Your {lang?.name} translation</div>
             <textarea value={userAnswer} onChange={e => { setUserAnswer(e.target.value); setFeedback(''); }}
               placeholder={`Write your ${lang?.name} translation here...`}
-              style={{ width: '100%', background: 'rgba(250,246,240,0.08)', border: '0.5px solid rgba(250,246,240,0.15)', borderRadius: 10, padding: '12px 14px', fontSize: 15, color: '#FAF6F0', resize: 'none', minHeight: 100, outline: 'none', marginBottom: 10, fontFamily: "'Noto Sans Devanagari','DM Sans',sans-serif", boxSizing: 'border-box' }} />
+              style={{ width: '100%', background: 'rgba(250,246,240,0.08)', border: '0.5px solid rgba(250,246,240,0.15)', borderRadius: 10, padding: '12px 14px', fontSize: 15, color: '#FAF6F0', resize: 'none', minHeight: 100, outline: 'none', marginBottom: 10, boxSizing: 'border-box' }} />
             <button onClick={checkAnswer} disabled={!userAnswer.trim() || loading}
-              style={{ width: '100%', background: userAnswer.trim() && !loading ? '#7C3AED' : 'rgba(250,246,240,0.1)', color: userAnswer.trim() && !loading ? '#FAF6F0' : 'rgba(250,246,240,0.3)', border: 'none', borderRadius: 10, padding: '13px', fontSize: 15, fontWeight: 500, cursor: userAnswer.trim() && !loading ? 'pointer' : 'not-allowed' }}>
+              style={{ width: '100%', background: userAnswer.trim() && !loading ? '#7C3AED' : 'rgba(250,246,240,0.1)', color: userAnswer.trim() && !loading ? '#FAF6F0' : 'rgba(250,246,240,0.3)', border: 'none', borderRadius: 10, padding: '13px', fontSize: 15, fontWeight: 500, cursor: 'pointer' }}>
               {loading ? '✨ AI is checking...' : 'Check my translation →'}
             </button>
           </div>
-
           {feedback && (
             <div style={{ padding: '1rem 1.25rem', borderRadius: 12, background: feedback.startsWith('Bahut') ? '#E0F2F2' : '#FDF0E8', color: feedback.startsWith('Bahut') ? '#0D6E6E' : '#E8611A', fontSize: 14, lineHeight: 1.7, whiteSpace: 'pre-wrap', marginBottom: '1rem' }}>
               {feedback}
             </div>
           )}
-
-          {/* Show translation hint */}
           {translation && (
             <details style={{ marginTop: '0.5rem' }}>
               <summary style={{ cursor: 'pointer', fontSize: 13, color: '#7A6552', padding: '8px 0' }}>Show correct translation 👁️</summary>
@@ -128,7 +130,7 @@ function ParagraphMode({ lang, onBack }) {
   );
 }
 
-// ─── Sentence builder component ───────────────────────────────────────────────
+// ─── Sentence Mode ────────────────────────────────────────────────────────────
 function SentenceMode({ lesson, lang, onBack, onComplete }) {
   const [step, setStep] = useState(0);
   const [score, setScore] = useState(0);
@@ -137,50 +139,34 @@ function SentenceMode({ lesson, lang, onBack, onComplete }) {
   const [loading, setLoading] = useState(false);
   const [sentences, setSentences] = useState(null);
 
-useEffect(() => {
-    generateSentences();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  useEffect(() => { generateSentences(); }, []);
 
   async function generateSentences() {
-  setLoading(true);
-  try {
-    // Build sentences locally from lesson words — no API needed!
-    const templates = [
-      (w) => ({ hindi: `यह ${w.hindi} है`, target: `यह ${w.target} है`, options: shuffle([w.target, ...getWrongOptions(w)]) }),
-      (w) => ({ hindi: `मुझे ${w.hindi} चाहिए`, target: `मुझे ${w.target} चाहिए`, options: shuffle([w.target, ...getWrongOptions(w)]) }),
-      (w) => ({ hindi: `${w.hindi} अच्छा है`, target: `${w.target} अच्छा है`, options: shuffle([w.target, ...getWrongOptions(w)]) }),
-      (w) => ({ hindi: `यह मेरा ${w.hindi} है`, target: `यह मेरा ${w.target} है`, options: shuffle([w.target, ...getWrongOptions(w)]) }),
-      (w) => ({ hindi: `क्या यह ${w.hindi} है?`, target: `क्या यह ${w.target} है?`, options: shuffle([w.target, ...getWrongOptions(w)]) }),
-    ];
-
-    function getWrongOptions(word) {
-      return lesson.words
-        .filter(w => w.hindi !== word.hindi)
-        .sort(() => Math.random() - 0.5)
-        .slice(0, 3)
-        .map(w => w.target);
+    setLoading(true);
+    try {
+      function getWrongOptions(word) {
+        return lesson.words.filter(w => w.hindi !== word.hindi).sort(() => Math.random() - 0.5).slice(0, 3).map(w => w.target);
+      }
+      function shuffle(arr) { return arr.sort(() => Math.random() - 0.5); }
+      const templates = [
+        (w) => ({ hindi: `यह ${w.hindi} है`, options: shuffle([w.target, ...getWrongOptions(w)]) }),
+        (w) => ({ hindi: `मुझे ${w.hindi} चाहिए`, options: shuffle([w.target, ...getWrongOptions(w)]) }),
+        (w) => ({ hindi: `${w.hindi} अच्छा है`, options: shuffle([w.target, ...getWrongOptions(w)]) }),
+        (w) => ({ hindi: `यह मेरा ${w.hindi} है`, options: shuffle([w.target, ...getWrongOptions(w)]) }),
+        (w) => ({ hindi: `क्या यह ${w.hindi} है?`, options: shuffle([w.target, ...getWrongOptions(w)]) }),
+      ];
+      const picked = [...lesson.words].sort(() => Math.random() - 0.5).slice(0, 5);
+      const built = picked.map((word, i) => {
+        const s = templates[i % templates.length](word);
+        return { hindi: s.hindi, options: s.options, correct: s.options.indexOf(word.target) };
+      });
+      setSentences(built);
+    } catch {
+      setSentences(null);
     }
-
-    function shuffle(arr) { return arr.sort(() => Math.random() - 0.5); }
-
-    const picked = lesson.words.sort(() => Math.random() - 0.5).slice(0, 5);
-    const built = picked.map((word, i) => {
-      const s = templates[i % templates.length](word);
-      return {
-        hindi: s.hindi,
-        target: s.target,
-        options: s.options,
-        correct: s.options.indexOf(word.target),
-      };
-    });
-
-    setSentences(built);
-  } catch (e) {
-    setSentences(null);
+    setLoading(false);
   }
-  setLoading(false);
-}
 
   function pick(i) {
     if (selected !== null) return;
@@ -193,33 +179,17 @@ useEffect(() => {
     setStep(s => s + 1); setSelected(null);
   }
 
-  if (loading) return (
-    <div style={{ textAlign: 'center', padding: '4rem 0' }}>
-      <div style={{ fontSize: 36, marginBottom: 16 }}>💬</div>
-      <div style={{ fontFamily: "'Playfair Display',serif", fontSize: 20, color: '#1A1208' }}>Building sentence exercises...</div>
-    </div>
-  );
-
-  if (!sentences) return (
-    <div style={{ textAlign: 'center', padding: '4rem 0' }}>
-      <div style={{ fontSize: 36, marginBottom: 16 }}>😔</div>
-      <p style={{ color: '#E8611A' }}>Could not generate sentences.</p>
-      <button onClick={generateSentences} style={{ background: '#E8611A', color: '#FAF6F0', border: 'none', borderRadius: 10, padding: '10px 20px', cursor: 'pointer', marginTop: 12 }}>Try again</button>
-    </div>
-  );
+  if (loading) return <div style={{ textAlign: 'center', padding: '4rem 0' }}><div style={{ fontSize: 36 }}>💬</div><div style={{ fontFamily: "'Playfair Display',serif", fontSize: 20, color: '#1A1208', marginTop: 16 }}>Building sentences...</div></div>;
+  if (!sentences) return <div style={{ textAlign: 'center', padding: '4rem 0' }}><p style={{ color: '#E8611A' }}>Could not generate.</p><button onClick={generateSentences} style={{ background: '#E8611A', color: '#FAF6F0', border: 'none', borderRadius: 10, padding: '10px 20px', cursor: 'pointer', marginTop: 12 }}>Try again</button></div>;
 
   if (done) return (
     <div style={{ textAlign: 'center', maxWidth: 400, margin: '0 auto' }} className="fade-up">
       <div style={{ fontSize: 56, marginBottom: 12 }}>{score >= 4 ? '🏆' : '💪'}</div>
-      <h2 style={{ fontFamily: "'Playfair Display',serif", fontSize: 26, color: '#1A1208', marginBottom: 8 }}>
-        {score >= 4 ? 'Bahut Badhiya!' : 'Keep Going!'}
-      </h2>
-      <p style={{ color: '#7A6552', marginBottom: '1.5rem' }}>You got {score} out of {sentences.length} sentences right!</p>
+      <h2 style={{ fontFamily: "'Playfair Display',serif", fontSize: 26, color: '#1A1208', marginBottom: 8 }}>{score >= 4 ? 'Bahut Badhiya!' : 'Keep Going!'}</h2>
+      <p style={{ color: '#7A6552', marginBottom: '1.5rem' }}>You got {score} out of {sentences.length} right!</p>
       <div style={{ display: 'flex', gap: 10, justifyContent: 'center' }}>
-        <button onClick={() => { setStep(0); setScore(0); setSelected(null); setDone(false); generateSentences(); }}
-          style={{ background: '#E8611A', color: '#FAF6F0', border: 'none', borderRadius: 10, padding: '11px 20px', fontSize: 14, fontWeight: 500, cursor: 'pointer' }}>Try again</button>
-        <button onClick={onBack}
-          style={{ background: '#1A1208', color: '#FAF6F0', border: 'none', borderRadius: 10, padding: '11px 20px', fontSize: 14, fontWeight: 500, cursor: 'pointer' }}>Back to levels</button>
+        <button onClick={() => { setStep(0); setScore(0); setSelected(null); setDone(false); generateSentences(); }} style={{ background: '#E8611A', color: '#FAF6F0', border: 'none', borderRadius: 10, padding: '11px 20px', fontSize: 14, fontWeight: 500, cursor: 'pointer' }}>Try again</button>
+        <button onClick={onBack} style={{ background: '#1A1208', color: '#FAF6F0', border: 'none', borderRadius: 10, padding: '11px 20px', fontSize: 14, fontWeight: 500, cursor: 'pointer' }}>Back</button>
       </div>
     </div>
   );
@@ -228,21 +198,17 @@ useEffect(() => {
   return (
     <div style={{ maxWidth: 520 }} className="fade-up">
       <button onClick={onBack} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#7A6552', fontSize: 14, marginBottom: '1.5rem', padding: 0 }}>← Back</button>
-
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
         <div style={{ fontSize: 13, color: '#7A6552' }}>Sentence {step + 1} of {sentences.length}</div>
         <div style={{ background: '#FDF0E8', borderRadius: 99, padding: '4px 12px', fontSize: 13, fontWeight: 500, color: '#E8611A' }}>Score: {score}</div>
       </div>
-
       <div style={{ height: 5, background: '#F0E8DC', borderRadius: 99, marginBottom: '1.5rem' }}>
         <div style={{ height: '100%', borderRadius: 99, background: '#E8611A', width: `${(step / sentences.length) * 100}%`, transition: 'width 0.4s' }} />
       </div>
-
       <div style={{ background: '#1A1208', borderRadius: 16, padding: '2rem', textAlign: 'center', marginBottom: '1.25rem' }}>
         <div style={{ fontSize: 12, color: 'rgba(250,246,240,0.45)', marginBottom: 10, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Translate to {lang?.name}</div>
         <div style={{ fontFamily: "'Noto Sans Devanagari',sans-serif", fontSize: 28, fontWeight: 500, color: '#FAF6F0', lineHeight: 1.4 }}>{s.hindi}</div>
       </div>
-
       <div style={{ display: 'grid', gap: 10, marginBottom: 12 }}>
         {s.options.map((opt, i) => {
           let bg = '#fff', border = 'rgba(26,18,8,0.12)', color = '#1A1208';
@@ -250,15 +216,9 @@ useEffect(() => {
             if (i === s.correct) { bg = '#E0F2F2'; border = '#0D6E6E'; color = '#0D6E6E'; }
             else if (i === selected) { bg = '#FDF0E8'; border = '#E8611A'; color = '#E8611A'; }
           }
-          return (
-            <button key={i} onClick={() => pick(i)}
-              style={{ background: bg, border: `1.5px solid ${border}`, borderRadius: 12, padding: '13px 16px', fontSize: 14, fontWeight: 500, color, cursor: selected !== null ? 'default' : 'pointer', transition: 'all 0.18s', textAlign: 'left' }}>
-              {opt}
-            </button>
-          );
+          return <button key={i} onClick={() => pick(i)} style={{ background: bg, border: `1.5px solid ${border}`, borderRadius: 12, padding: '13px 16px', fontSize: 14, fontWeight: 500, color, cursor: selected !== null ? 'default' : 'pointer', transition: 'all 0.18s', textAlign: 'left' }}>{opt}</button>;
         })}
       </div>
-
       {selected !== null && (
         <>
           <div style={{ padding: '11px 14px', borderRadius: 10, background: selected === s.correct ? '#E0F2F2' : '#FDF0E8', color: selected === s.correct ? '#0D6E6E' : '#E8611A', fontSize: 14, fontWeight: 500, marginBottom: 10 }}>
@@ -273,7 +233,7 @@ useEffect(() => {
   );
 }
 
-// ─── Word Quiz (Level 1) ──────────────────────────────────────────────────────
+// ─── Word Quiz ────────────────────────────────────────────────────────────────
 function WordQuiz({ lesson, lang, onBack, onComplete }) {
   const [quiz, setQuiz] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -301,16 +261,12 @@ function WordQuiz({ lesson, lang, onBack, onComplete }) {
   }
 
   function next() {
-    if (qIndex + 1 >= quiz.length) {
-      setDone(true);
-      onComplete && onComplete(score + (selected === quiz[qIndex].correct ? 1 : 0));
-      return;
-    }
+    if (qIndex + 1 >= quiz.length) { setDone(true); onComplete && onComplete(score + (selected === quiz[qIndex].correct ? 1 : 0)); return; }
     setQIndex(i => i + 1); setSelected(null);
   }
 
-  if (loading) return <div style={{ textAlign: 'center', padding: '4rem 0' }}><div style={{ fontSize: 36 }}>⚡</div><div style={{ fontFamily: "'Playfair Display',serif", fontSize: 20, color: '#1A1208', marginTop: 16 }}>Generating word quiz...</div></div>;
-  if (!quiz) return <div style={{ textAlign: 'center', padding: '4rem 0', color: '#E8611A' }}>Could not load quiz. <button onClick={loadQuiz} style={{ background: 'none', border: 'none', color: '#E8611A', textDecoration: 'underline', cursor: 'pointer' }}>Try again</button></div>;
+  if (loading) return <div style={{ textAlign: 'center', padding: '4rem 0' }}><div style={{ fontSize: 36 }}>⚡</div><div style={{ fontFamily: "'Playfair Display',serif", fontSize: 20, color: '#1A1208', marginTop: 16 }}>Generating quiz...</div></div>;
+  if (!quiz) return <div style={{ textAlign: 'center', padding: '4rem 0', color: '#E8611A' }}>Could not load. <button onClick={loadQuiz} style={{ background: 'none', border: 'none', color: '#E8611A', textDecoration: 'underline', cursor: 'pointer' }}>Try again</button></div>;
 
   if (done) return (
     <div style={{ textAlign: 'center', maxWidth: 400, margin: '0 auto' }} className="fade-up">
@@ -318,10 +274,8 @@ function WordQuiz({ lesson, lang, onBack, onComplete }) {
       <h2 style={{ fontFamily: "'Playfair Display',serif", fontSize: 26, color: '#1A1208', marginBottom: 8 }}>{score >= 4 ? 'Bahut Badhiya!' : 'Keep Practicing!'}</h2>
       <p style={{ color: '#7A6552', marginBottom: '1.5rem' }}>You scored {score} out of {quiz.length}!</p>
       <div style={{ display: 'flex', gap: 10, justifyContent: 'center' }}>
-        <button onClick={() => { setQIndex(0); setScore(0); setSelected(null); setDone(false); loadQuiz(); }}
-          style={{ background: '#0D6E6E', color: '#FAF6F0', border: 'none', borderRadius: 10, padding: '11px 20px', fontSize: 14, fontWeight: 500, cursor: 'pointer' }}>Retry</button>
-        <button onClick={onBack}
-          style={{ background: '#1A1208', color: '#FAF6F0', border: 'none', borderRadius: 10, padding: '11px 20px', fontSize: 14, fontWeight: 500, cursor: 'pointer' }}>Back</button>
+        <button onClick={() => { setQIndex(0); setScore(0); setSelected(null); setDone(false); loadQuiz(); }} style={{ background: '#0D6E6E', color: '#FAF6F0', border: 'none', borderRadius: 10, padding: '11px 20px', fontSize: 14, fontWeight: 500, cursor: 'pointer' }}>Retry</button>
+        <button onClick={onBack} style={{ background: '#1A1208', color: '#FAF6F0', border: 'none', borderRadius: 10, padding: '11px 20px', fontSize: 14, fontWeight: 500, cursor: 'pointer' }}>Back</button>
       </div>
     </div>
   );
@@ -366,9 +320,32 @@ function WordQuiz({ lesson, lang, onBack, onComplete }) {
   );
 }
 
-// ─── Lesson detail (word viewer) ──────────────────────────────────────────────
+// ─── Lesson Detail ────────────────────────────────────────────────────────────
 function LessonDetail({ lesson, lang, onBack, onStartQuiz, onStartSentences }) {
   const [activeWord, setActiveWord] = useState(null);
+  const { user, profile } = useAuth();
+  const [bookmarked, setBookmarked] = useState({});
+
+  useEffect(() => {
+    const saved = profile?.bookmarks || [];
+    const map = {};
+    saved.forEach(b => { map[b.id] = true; });
+    setBookmarked(map);
+  }, [profile]);
+
+  async function toggleBookmark(word) {
+    const id = `${lang?.code}-${word.hindi}`;
+    const existing = profile?.bookmarks || [];
+    let updated;
+    if (bookmarked[id]) {
+      updated = existing.filter(b => b.id !== id);
+      setBookmarked(prev => ({ ...prev, [id]: false }));
+    } else {
+      updated = [...existing, { id, hindi: word.hindi, target: word.target, roman: word.roman, meaning: word.meaning, lang: lang?.code }];
+      setBookmarked(prev => ({ ...prev, [id]: true }));
+    }
+    if (user) await supabase.from('profiles').update({ bookmarks: updated }).eq('id', user.id);
+  }
 
   return (
     <div className="fade-up">
@@ -377,20 +354,13 @@ function LessonDetail({ lesson, lang, onBack, onStartQuiz, onStartSentences }) {
         <div style={{ width: 52, height: 52, background: '#FDF0E8', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 26 }}>{lesson.icon}</div>
         <div style={{ flex: 1 }}>
           <h2 style={{ fontFamily: "'Playfair Display',serif", fontSize: 22, fontWeight: 700, color: '#1A1208', margin: 0 }}>{lesson.title} — {lang?.name}</h2>
-          <p style={{ fontSize: 13, color: '#7A6552', marginTop: 2 }}>{lesson.words.length} words · tap any word to expand</p>
+          <p style={{ fontSize: 13, color: '#7A6552', marginTop: 2 }}>{lesson.words.length} words · tap to expand · 🔊 to hear</p>
         </div>
       </div>
 
-      {/* Practice buttons */}
       <div style={{ display: 'flex', gap: 10, marginBottom: '1.5rem' }}>
-        <button onClick={onStartQuiz}
-          style={{ flex: 1, background: '#E0F2F2', color: '#0D6E6E', border: '1.5px solid #0D6E6E44', borderRadius: 12, padding: '12px', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
-          🔤 Word Quiz
-        </button>
-        <button onClick={onStartSentences}
-          style={{ flex: 1, background: '#FDF0E8', color: '#E8611A', border: '1.5px solid #E8611A44', borderRadius: 12, padding: '12px', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
-          💬 Sentence Builder
-        </button>
+        <button onClick={onStartQuiz} style={{ flex: 1, background: '#E0F2F2', color: '#0D6E6E', border: '1.5px solid #0D6E6E44', borderRadius: 12, padding: '12px', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>🔤 Word Quiz</button>
+        <button onClick={onStartSentences} style={{ flex: 1, background: '#FDF0E8', color: '#E8611A', border: '1.5px solid #E8611A44', borderRadius: 12, padding: '12px', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>💬 Sentence Builder</button>
       </div>
 
       <div style={{ display: 'grid', gap: 10 }}>
@@ -398,18 +368,35 @@ function LessonDetail({ lesson, lang, onBack, onStartQuiz, onStartSentences }) {
           <div key={i} onClick={() => setActiveWord(activeWord === i ? null : i)}
             style={{ background: activeWord === i ? '#1A1208' : '#fff', border: activeWord === i ? '0.5px solid #1A1208' : '0.5px solid rgba(26,18,8,0.1)', borderRadius: 12, padding: '1rem 1.25rem', cursor: 'pointer', transition: 'all 0.2s' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div style={{ display: 'flex', gap: 20, alignItems: 'center', flex: 1 }}>
+              <div style={{ display: 'flex', gap: 16, alignItems: 'center', flex: 1 }}>
+                {/* Hindi word */}
                 <div style={{ minWidth: 80 }}>
-                  <div style={{ fontFamily: "'Noto Sans Devanagari',sans-serif", fontSize: 20, fontWeight: 500, color: activeWord === i ? '#FAF6F0' : '#1A1208' }}>{word.hindi}</div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <div style={{ fontFamily: "'Noto Sans Devanagari',sans-serif", fontSize: 20, fontWeight: 500, color: activeWord === i ? '#FAF6F0' : '#1A1208' }}>{word.hindi}</div>
+                    <button onClick={e => { e.stopPropagation(); speak(word.hindi, 'hindi'); }}
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, padding: '2px', opacity: 0.6 }} title="Hear Hindi">🔊</button>
+                  </div>
                   <div style={{ fontSize: 11, color: activeWord === i ? 'rgba(250,246,240,0.5)' : '#7A6552', marginTop: 2 }}>Hindi</div>
                 </div>
                 <span style={{ color: '#E8611A', fontSize: 18, flexShrink: 0 }}>→</span>
+                {/* Target word */}
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 20, fontWeight: 500, color: activeWord === i ? '#F5C49A' : '#E8611A' }}>{word.target}</div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <div style={{ fontSize: 20, fontWeight: 500, color: activeWord === i ? '#F5C49A' : '#E8611A' }}>{word.target}</div>
+                    <button onClick={e => { e.stopPropagation(); speak(word.target, lang?.code); }}
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, padding: '2px', opacity: 0.8 }} title="Hear pronunciation">🔊</button>
+                  </div>
                   <div style={{ fontSize: 11, color: activeWord === i ? 'rgba(250,246,240,0.5)' : '#7A6552', marginTop: 2 }}>{word.roman}</div>
                 </div>
               </div>
-              <span style={{ fontSize: 12, color: activeWord === i ? 'rgba(250,246,240,0.5)' : '#7A6552', marginLeft: 8 }}>{activeWord === i ? '▲' : '▼'}</span>
+              {/* Bookmark + expand */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+                <button onClick={e => { e.stopPropagation(); toggleBookmark(word); }}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 16, padding: '2px' }}>
+                  {bookmarked[`${lang?.code}-${word.hindi}`] ? '🔖' : '📌'}
+                </button>
+                <span style={{ fontSize: 12, color: activeWord === i ? 'rgba(250,246,240,0.5)' : '#7A6552' }}>{activeWord === i ? '▲' : '▼'}</span>
+              </div>
             </div>
             {activeWord === i && (
               <div style={{ marginTop: 12, paddingTop: 12, borderTop: '0.5px solid rgba(250,246,240,0.15)', fontSize: 14, color: 'rgba(250,246,240,0.75)' }}>
@@ -423,50 +410,45 @@ function LessonDetail({ lesson, lang, onBack, onStartQuiz, onStartSentences }) {
   );
 }
 
-// ─── Main Lessons page ────────────────────────────────────────────────────────
+// ─── Main Lessons Page ────────────────────────────────────────────────────────
 export default function Lessons() {
   const { user, profile } = useAuth();
   const [selectedLang, setSelectedLang] = useState('bhojpuri');
   const [activeLevel, setActiveLevel] = useState(1);
   const [selectedLesson, setSelectedLesson] = useState(null);
-  const [mode, setMode] = useState('list'); // list | words | wordquiz | sentences | paragraphs
+  const [mode, setMode] = useState('list');
   const [xpMap, setXpMap] = useState({});
   const xp = xpMap[selectedLang] || 0;
   const [customTopic, setCustomTopic] = useState('');
   const [generating, setGenerating] = useState(false);
   const [, setAiLesson] = useState(null);
   const [error, setError] = useState('');
- 
+
   useEffect(() => {
-  if (profile?.xp_map) setXpMap(profile.xp_map);
-}, [profile]);
+    if (profile?.xp_map) setXpMap(profile.xp_map);
+  }, [profile]);
 
   const currentLang = LANGUAGES.find(l => l.code === selectedLang);
   const lessons = LESSONS_DATA[selectedLang] || [];
-
   const unlockedLevel = xp >= 6 ? 3 : xp >= 3 ? 2 : 1;
 
   function changeLang(code) {
-    setSelectedLang(code);
-    setSelectedLesson(null);
-    setMode('list');
-    setAiLesson(null);
-    setCustomTopic('');
-    setError('');
+    setSelectedLang(code); setSelectedLesson(null); setMode('list');
+    setAiLesson(null); setCustomTopic(''); setError('');
   }
 
- async function handleComplete(score) {
-  if (score >= 3 && user) {
-    const newXp = Math.min((xpMap[selectedLang] || 0) + 2, 10);
-    const newMap = { ...xpMap, [selectedLang]: newXp };
-    setXpMap(newMap);
-    await supabase.from('profiles').update({
-      xp_map: newMap,
-      total_xp: (profile?.total_xp || 0) + 2,
-      lessons_completed: (profile?.lessons_completed || 0) + 1,
-    }).eq('id', user.id);
+  async function handleComplete(score) {
+    if (score >= 3 && user) {
+      const newXp = Math.min((xpMap[selectedLang] || 0) + 2, 10);
+      const newMap = { ...xpMap, [selectedLang]: newXp };
+      setXpMap(newMap);
+      await supabase.from('profiles').update({
+        xp_map: newMap,
+        total_xp: (profile?.total_xp || 0) + 2,
+        lessons_completed: (profile?.lessons_completed || 0) + 1,
+      }).eq('id', user.id);
+    }
   }
-}
 
   async function generate() {
     if (!customTopic.trim()) return;
@@ -474,26 +456,15 @@ export default function Lessons() {
     try {
       const data = await generateLesson(`${customTopic.trim()} in ${currentLang?.name}`);
       const lesson = { ...data, id: 99, icon: '✨', progress: 0, status: 'new' };
-      setAiLesson(lesson);
-      setSelectedLesson(lesson);
-      setMode('words');
+      setAiLesson(lesson); setSelectedLesson(lesson); setMode('words');
     } catch { setError('Could not generate lesson. Please try again.'); }
     setGenerating(false);
   }
 
-  // Render modes
   if (mode === 'wordquiz' && selectedLesson) return <WordQuiz lesson={selectedLesson} lang={currentLang} onBack={() => setMode('words')} onComplete={handleComplete} />;
   if (mode === 'sentences' && selectedLesson) return <SentenceMode lesson={selectedLesson} lang={currentLang} onBack={() => setMode('words')} onComplete={handleComplete} />;
   if (mode === 'paragraphs') return <ParagraphMode lang={currentLang} onBack={() => setMode('list')} />;
-  if (mode === 'words' && selectedLesson) return (
-    <LessonDetail
-      lesson={selectedLesson}
-      lang={currentLang}
-      onBack={() => { setMode('list'); setSelectedLesson(null); }}
-      onStartQuiz={() => setMode('wordquiz')}
-      onStartSentences={() => setMode('sentences')}
-    />
-  );
+  if (mode === 'words' && selectedLesson) return <LessonDetail lesson={selectedLesson} lang={currentLang} onBack={() => { setMode('list'); setSelectedLesson(null); }} onStartQuiz={() => setMode('wordquiz')} onStartSentences={() => setMode('sentences')} />;
 
   return (
     <div style={{ maxWidth: 720 }}>
@@ -502,21 +473,14 @@ export default function Lessons() {
         <p style={{ fontSize: 14, color: '#7A6552', marginTop: 4 }}>Level up from words → sentences → full paragraphs!</p>
       </div>
 
-      {/* Language selector */}
       <div className="fade-up-2" style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: '1.5rem' }}>
         {LANGUAGES.map(lang => (
-          <button key={lang.code} onClick={() => changeLang(lang.code)} style={{
-            padding: '8px 16px', borderRadius: 99, fontSize: 13, fontWeight: 500, cursor: 'pointer', transition: 'all 0.15s',
-            background: selectedLang === lang.code ? '#1A1208' : '#fff',
-            color: selectedLang === lang.code ? '#FAF6F0' : '#1A1208',
-            border: selectedLang === lang.code ? '0.5px solid #1A1208' : '0.5px solid rgba(26,18,8,0.15)',
-          }}>
+          <button key={lang.code} onClick={() => changeLang(lang.code)} style={{ padding: '8px 16px', borderRadius: 99, fontSize: 13, fontWeight: 500, cursor: 'pointer', transition: 'all 0.15s', background: selectedLang === lang.code ? '#1A1208' : '#fff', color: selectedLang === lang.code ? '#FAF6F0' : '#1A1208', border: selectedLang === lang.code ? '0.5px solid #1A1208' : '0.5px solid rgba(26,18,8,0.15)' }}>
             {lang.flag} {lang.name} <span style={{ opacity: 0.6, fontSize: 11 }}>{lang.script}</span>
           </button>
         ))}
       </div>
 
-      {/* XP bar */}
       <div className="fade-up-2" style={{ background: '#fff', border: '0.5px solid rgba(26,18,8,0.1)', borderRadius: 12, padding: '1rem 1.25rem', marginBottom: '1.5rem' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
           <span style={{ fontSize: 13, fontWeight: 600, color: '#1A1208' }}>Your Progress</span>
@@ -532,18 +496,12 @@ export default function Lessons() {
         </div>
       </div>
 
-      {/* Level tabs */}
       <div className="fade-up-3" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10, marginBottom: '1.5rem' }}>
         {LEVELS.map(level => {
           const locked = level.id > unlockedLevel;
           return (
-            <button key={level.id} onClick={() => !locked && setActiveLevel(level.id)}
-              disabled={locked}
-              style={{
-                padding: '1rem', borderRadius: 14, border: activeLevel === level.id ? `2px solid ${level.color}` : '0.5px solid rgba(26,18,8,0.1)',
-                background: locked ? '#F0E8DC' : activeLevel === level.id ? level.bg : '#fff',
-                cursor: locked ? 'not-allowed' : 'pointer', transition: 'all 0.15s', textAlign: 'center', opacity: locked ? 0.6 : 1,
-              }}>
+            <button key={level.id} onClick={() => !locked && setActiveLevel(level.id)} disabled={locked}
+              style={{ padding: '1rem', borderRadius: 14, border: activeLevel === level.id ? `2px solid ${level.color}` : '0.5px solid rgba(26,18,8,0.1)', background: locked ? '#F0E8DC' : activeLevel === level.id ? level.bg : '#fff', cursor: locked ? 'not-allowed' : 'pointer', transition: 'all 0.15s', textAlign: 'center', opacity: locked ? 0.6 : 1 }}>
               <div style={{ fontSize: 24, marginBottom: 4 }}>{locked ? '🔒' : level.icon}</div>
               <div style={{ fontSize: 13, fontWeight: 600, color: locked ? '#7A6552' : level.color }}>{level.name}</div>
               <div style={{ fontSize: 11, color: '#7A6552', marginTop: 2 }}>{locked ? `${level.xpNeeded} XP to unlock` : level.desc}</div>
@@ -552,20 +510,15 @@ export default function Lessons() {
         })}
       </div>
 
-      {/* Paragraph mode - no lesson needed */}
       {activeLevel === 3 && unlockedLevel >= 3 && (
         <div className="fade-up" style={{ background: '#F5F3FF', border: '1.5px solid #7C3AED44', borderRadius: 14, padding: '1.5rem', marginBottom: '1.5rem', textAlign: 'center' }}>
           <div style={{ fontSize: 36, marginBottom: 8 }}>📖</div>
           <h3 style={{ fontFamily: "'Playfair Display',serif", fontSize: 18, color: '#1A1208', marginBottom: 6 }}>Paragraph Practice</h3>
-          <p style={{ fontSize: 13, color: '#7A6552', marginBottom: '1rem' }}>AI generates a Hindi paragraph on any topic. You translate it to {currentLang?.name}!</p>
-          <button onClick={() => setMode('paragraphs')}
-            style={{ background: '#7C3AED', color: '#FAF6F0', border: 'none', borderRadius: 12, padding: '12px 28px', fontSize: 15, fontWeight: 600, cursor: 'pointer' }}>
-            Start Paragraph Practice →
-          </button>
+          <p style={{ fontSize: 13, color: '#7A6552', marginBottom: '1rem' }}>AI generates a Hindi paragraph. You translate to {currentLang?.name}!</p>
+          <button onClick={() => setMode('paragraphs')} style={{ background: '#7C3AED', color: '#FAF6F0', border: 'none', borderRadius: 12, padding: '12px 28px', fontSize: 15, fontWeight: 600, cursor: 'pointer' }}>Start Paragraph Practice →</button>
         </div>
       )}
 
-      {/* AI lesson generator */}
       {activeLevel <= 2 && (
         <div className="fade-up-3" style={{ background: '#1A1208', borderRadius: 14, padding: '1.25rem', marginBottom: '1.5rem' }}>
           <div style={{ fontSize: 11, color: 'rgba(250,246,240,0.4)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>✨ AI Lesson Generator — {currentLang?.name}</div>
@@ -574,7 +527,7 @@ export default function Lessons() {
               placeholder="e.g. Colors, Animals, Weather, Body parts..."
               style={{ flex: 1, background: 'rgba(250,246,240,0.08)', border: '0.5px solid rgba(250,246,240,0.15)', borderRadius: 10, padding: '10px 13px', fontSize: 14, color: '#FAF6F0', outline: 'none' }} />
             <button onClick={generate} disabled={!customTopic.trim() || generating}
-              style={{ background: customTopic.trim() && !generating ? '#E8611A' : 'rgba(250,246,240,0.1)', color: customTopic.trim() && !generating ? '#FAF6F0' : 'rgba(250,246,240,0.3)', border: 'none', borderRadius: 10, padding: '10px 18px', fontSize: 14, fontWeight: 500, cursor: customTopic.trim() && !generating ? 'pointer' : 'default', whiteSpace: 'nowrap' }}>
+              style={{ background: customTopic.trim() && !generating ? '#E8611A' : 'rgba(250,246,240,0.1)', color: customTopic.trim() && !generating ? '#FAF6F0' : 'rgba(250,246,240,0.3)', border: 'none', borderRadius: 10, padding: '10px 18px', fontSize: 14, fontWeight: 500, cursor: 'pointer', whiteSpace: 'nowrap' }}>
               {generating ? 'Generating...' : 'Generate →'}
             </button>
           </div>
@@ -582,7 +535,6 @@ export default function Lessons() {
         </div>
       )}
 
-      {/* Lesson list */}
       {activeLevel <= 2 && (
         <div style={{ display: 'grid', gap: 12 }}>
           {lessons.map((lesson, i) => (
@@ -594,9 +546,7 @@ export default function Lessons() {
               <div style={{ width: 46, height: 46, background: '#FDF0E8', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, flexShrink: 0 }}>{lesson.icon}</div>
               <div style={{ flex: 1 }}>
                 <div style={{ fontSize: 15, fontWeight: 500, color: '#1A1208' }}>{lesson.title}</div>
-                <div style={{ fontSize: 12, color: '#7A6552', marginTop: 2 }}>
-                  {lesson.words.slice(0, 3).map(w => w.roman).join(', ')}...
-                </div>
+                <div style={{ fontSize: 12, color: '#7A6552', marginTop: 2 }}>{lesson.words.slice(0, 3).map(w => w.roman).join(', ')}...</div>
               </div>
               <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
                 <span style={{ fontSize: 11, background: '#E0F2F2', color: '#0D6E6E', padding: '3px 8px', borderRadius: 99 }}>🔤 Words</span>
