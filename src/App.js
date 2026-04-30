@@ -1,6 +1,6 @@
-import { useTheme } from './context/ThemeContext';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { ThemeProvider, useTheme } from './context/ThemeContext';
 import Sidebar from './components/Sidebar';
 import AiTutor from './components/AiTutor';
 import Auth from './pages/Auth';
@@ -13,12 +13,13 @@ import Achievements from './pages/Achievements';
 import Analytics from './pages/Analytics';
 import Pronunciation from './pages/Pronunciation';
 import LearningPath from './pages/LearningPath';
+import Bookmarks from './pages/Bookmarks';
 import './index.css';
-import { ThemeProvider } from './context/ThemeContext';
 
 function AppLayout() {
   const { user, loading } = useAuth();
   const { dark } = useTheme();
+
   if (loading) return (
     <div style={{ minHeight: '100vh', background: '#FAF6F0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <div style={{ textAlign: 'center' }}>
@@ -32,10 +33,12 @@ function AppLayout() {
 
   if (!user) return <Auth />;
 
+  const bg = dark ? '#0F0A06' : '#FAF6F0';
+
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: dark ? '#0F0A06' : '#FAF6F0' }}>
+    <div style={{ display: 'flex', minHeight: '100vh', background: bg }}>
       <Sidebar />
-      <main className="app-main" style={{ flex: 1, minHeight: '100vh', background: dark ? '#0F0A06' : '#FAF6F0',  display: 'flex', justifyContent: 'center' }}>
+      <main className="app-main" style={{ flex: 1, minHeight: '100vh', background: bg, display: 'flex', justifyContent: 'center' }}>
         <div style={{ width: '100%', maxWidth: 780 }}>
           <Routes>
             <Route path="/" element={<Home />} />
@@ -44,10 +47,10 @@ function AppLayout() {
             <Route path="/flashcards" element={<Flashcards />} />
             <Route path="/daily" element={<Daily />} />
             <Route path="/achievements" element={<Achievements />} />
-             <Route path="/analytics" element={<Analytics />} />
-             <Route path="/pronunciation" element={<Pronunciation />} />
-             <Route path="/path" element={<LearningPath />} />
-
+            <Route path="/analytics" element={<Analytics />} />
+            <Route path="/pronunciation" element={<Pronunciation />} />
+            <Route path="/path" element={<LearningPath />} />
+            <Route path="/bookmarks" element={<Bookmarks />} />
             <Route path="*" element={<Navigate to="/" />} />
           </Routes>
         </div>
@@ -60,11 +63,11 @@ function AppLayout() {
 export default function App() {
   return (
     <ThemeProvider>
-      <AuthProvider>
-        <BrowserRouter>
+      <BrowserRouter>
+        <AuthProvider>
           <AppLayout />
-        </BrowserRouter>
-      </AuthProvider>
+        </AuthProvider>
+      </BrowserRouter>
     </ThemeProvider>
   );
 }

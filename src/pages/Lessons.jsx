@@ -4,6 +4,14 @@ import { generateLesson, generateQuiz, chatWithTutor } from '../utils/claude';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../utils/supabase';
 
+// Pre-load voices on app start
+if (window.speechSynthesis) {
+  window.speechSynthesis.getVoices();
+  window.speechSynthesis.onvoiceschanged = () => {
+    window.speechSynthesis.getVoices();
+  };
+}
+
 const LEVELS = [
   { id: 1, name: 'Words', icon: '🔤', desc: 'Learn individual words', color: '#0D6E6E', bg: '#E0F2F2', xpNeeded: 0 },
   { id: 2, name: 'Sentences', icon: '💬', desc: 'Build simple sentences', color: '#E8611A', bg: '#FDF0E8', xpNeeded: 3 },

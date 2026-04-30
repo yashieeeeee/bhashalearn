@@ -5,7 +5,6 @@ import { signOut } from '../utils/supabase';
 import { useTheme } from '../context/ThemeContext';
 
 const navItems = [
-  { to: '/bookmarks', icon: '🔖', label: 'Bookmarks' },
   { to: '/', icon: '🏠', label: 'Home' },
   { to: '/lessons', icon: '📖', label: 'Lessons' },
   { to: '/quiz', icon: '⚡', label: 'Quiz' },
@@ -15,6 +14,7 @@ const navItems = [
   { to: '/analytics', icon: '📊', label: 'Analytics' },
   { to: '/pronunciation', icon: '🗣️', label: 'Speak' },
   { to: '/path', icon: '🎯', label: 'My Path' },
+  { to: '/bookmarks', icon: '🔖', label: 'Bookmarks' },
 ];
 
 // Bottom nav shows only main 5 items on mobile
@@ -24,6 +24,7 @@ const mobileNavItems = [
   { to: '/daily', icon: '🔥', label: 'Daily' },
   { to: '/achievements', icon: '🏆', label: 'Wins' },
   { to: '/path', icon: '🎯', label: 'Path' },
+   
 ];
 
 export default function Sidebar() {
