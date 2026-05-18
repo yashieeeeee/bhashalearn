@@ -23,9 +23,7 @@ export default function Home() {
 
   const text   = dark ? '#FAF6F0' : '#1A1208';
   const muted  = dark ? 'rgba(250,246,240,0.5)' : '#7A6552';
-  const card   = dark ? '#1A1208' : '#FFFFFF';
-  const border = dark ? 'rgba(250,246,240,0.08)' : 'rgba(26,18,8,0.08)';
-  const bg     = dark ? '#0F0A06' : '#FAF6F0';
+  
 
   const quickActions = [
     { icon: '⚡', label: 'Quick Quiz',     sub: 'Test your knowledge',   to: '/quiz',          color: '#E8611A', light: dark ? 'rgba(232,97,26,0.15)' : '#FDF0E8' },
