@@ -1,82 +1,169 @@
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { lessons } from '../data/content';
-const days = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+import { useTheme } from '../context/ThemeContext';
+
+const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
 export default function Home() {
-  const nav = useNavigate();
   const { user, profile } = useAuth();
-  const name = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Learner';
-  const firstName = name.split(' ')[0];
-  const next = lessons.find(l => l.status === 'progress' || l.status === 'new');
-  const streak = profile?.streak || 0;
-  const streakStatus = days.map((_, i) => i < streak && streak <= 7 ? (i < streak - 1 ? 'done' : 'today') : i === Math.min(streak, 6) ? 'today' : i < streak ? 'done' : 'upcoming');
+  const { dark } = useTheme();
+  const navigate = useNavigate();
+
+  const name        = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Learner';
+  const firstName   = name.charAt(0).toUpperCase() + name.slice(1);
+  const streak      = profile?.streak        || 0;
+  const totalXp     = profile?.total_xp      || 0;
+  const wordsLearned = profile?.words_learned || 0;
+  const level       = Math.floor(totalXp / 20) + 1;
+  const xpInLevel   = totalXp % 20;
+
+  const streakStatus = days.map((_, i) =>
+    i < streak - 1 ? 'done' : i === streak - 1 ? 'today' : 'upcoming'
+  );
+
+  const text   = dark ? '#FAF6F0' : '#1A1208';
+  const muted  = dark ? 'rgba(250,246,240,0.5)' : '#7A6552';
+  const card   = dark ? '#1A1208' : '#FFFFFF';
+  const border = dark ? 'rgba(250,246,240,0.08)' : 'rgba(26,18,8,0.08)';
+  const bg     = dark ? '#0F0A06' : '#FAF6F0';
+
+  const quickActions = [
+    { icon: '⚡', label: 'Quick Quiz',     sub: 'Test your knowledge',   to: '/quiz',          color: '#E8611A', light: dark ? 'rgba(232,97,26,0.15)' : '#FDF0E8' },
+    { icon: '🃏', label: 'Flashcards',     sub: 'Review vocabulary',     to: '/flashcards',    color: '#0D6E6E', light: dark ? 'rgba(13,110,110,0.15)' : '#E0F2F2' },
+    { icon: '🔥', label: 'Daily Practice', sub: "Today's challenge",     to: '/daily',         color: '#C8912A', light: dark ? 'rgba(200,145,42,0.15)' : '#FBF3E2' },
+    { icon: '🗣️', label: 'Pronunciation',  sub: 'Practice speaking',     to: '/pronunciation', color: '#7C3AED', light: dark ? 'rgba(123,79,176,0.15)' : '#F3ECFF' },
+  ];
 
   return (
-    <div style={{ maxWidth: 720 }}>
-      <div className="fade-up" style={{ marginBottom: '2rem' }}>
-        <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 32, fontWeight: 700, color: '#1A1208', lineHeight: 1.2, marginBottom: 8 }}>
-          Pranam, {firstName}! 🙏
+    <div className="fade-up" style={{ paddingBottom: '2rem' }}>
+
+      {/* ── Hero greeting ── */}
+      <div style={{
+        background: 'linear-gradient(135deg, #1A1208 0%, #2A1E0E 100%)',
+        borderRadius: 20,
+        padding: '24px 24px 20px',
+        marginBottom: 20,
+        position: 'relative',
+        overflow: 'hidden',
+      }}>
+        {/* decorative glow */}
+        <div style={{ position: 'absolute', top: -40, right: -40, width: 180, height: 180, borderRadius: '50%', background: 'radial-gradient(circle, rgba(232,97,26,0.2), transparent 70%)', pointerEvents: 'none' }} />
+        <div style={{ position: 'absolute', bottom: -20, left: 40, width: 120, height: 120, borderRadius: '50%', background: 'radial-gradient(circle, rgba(13,110,110,0.15), transparent 70%)', pointerEvents: 'none' }} />
+
+        <div style={{ position: 'relative' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
+            <div>
+              <p style={{ fontSize: 12, color: 'rgba(250,246,240,0.45)', margin: '0 0 4px', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Welcome back</p>
+              <h1 style={{ fontFamily: "'Playfair Display',serif", fontSize: 26, fontWeight: 700, color: '#FAF6F0', margin: 0, lineHeight: 1.2 }}>
+                Pranam, {firstName}! 🙏
+              </h1>
+            </div>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <div style={{ background: 'rgba(232,97,26,0.2)', border: '1px solid rgba(232,97,26,0.3)', borderRadius: 99, padding: '5px 12px', fontSize: 12, fontWeight: 600, color: '#F5C49A', display: 'flex', alignItems: 'center', gap: 5 }}>
+                🔥 {streak}
+              </div>
+              <div style={{ background: 'rgba(200,145,42,0.2)', border: '1px solid rgba(200,145,42,0.3)', borderRadius: 99, padding: '5px 12px', fontSize: 12, fontWeight: 600, color: '#E8C76A', display: 'flex', alignItems: 'center', gap: 5 }}>
+                ⚡ {totalXp} XP
+              </div>
+            </div>
+          </div>
+
+          {/* Level + XP bar */}
+          <div style={{ background: 'rgba(250,246,240,0.06)', borderRadius: 12, padding: '12px 14px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
+              <span style={{ fontSize: 12, fontWeight: 600, color: '#FAF6F0' }}>Level {level}</span>
+              <span style={{ fontSize: 11, color: 'rgba(250,246,240,0.45)' }}>{xpInLevel} / 20 XP to next level</span>
+            </div>
+            <div style={{ height: 6, background: 'rgba(250,246,240,0.1)', borderRadius: 99, overflow: 'hidden' }}>
+              <div style={{ height: '100%', borderRadius: 99, background: 'linear-gradient(90deg, #E8611A, #C8912A)', width: `${(xpInLevel / 20) * 100}%`, transition: 'width 0.6s cubic-bezier(0.34,1.56,0.64,1)' }} />
+            </div>
+          </div>
         </div>
-        <p style={{ fontSize: 15, color: '#7A6552' }}>Continue your journey to fluent Bhojpuri.</p>
       </div>
 
-      {/* Live stats */}
-      <div className="fade-up-2" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 12, marginBottom: '1.5rem' }}>
+      {/* ── Stats row ── */}
+      <div className="fade-up-2" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 10, marginBottom: 20 }}>
         {[
-          { num: profile?.words_learned || 0, label: 'Words learned', color: '#E8611A', bg: '#FDF0E8' },
-          { num: streak, label: 'Day streak', color: '#0D6E6E', bg: '#E0F2F2' },
-          { num: '—', label: 'Quiz accuracy', color: '#C8912A', bg: '#FBF3E2' },
+          { num: wordsLearned, label: 'Words', icon: '📚', color: '#E8611A', bg: dark ? 'rgba(232,97,26,0.12)' : '#FDF0E8', border: 'rgba(232,97,26,0.2)' },
+          { num: streak,       label: 'Streak', icon: '🔥', color: '#0D6E6E', bg: dark ? 'rgba(13,110,110,0.12)' : '#E0F2F2', border: 'rgba(13,110,110,0.2)' },
+          { num: `Lv.${level}`,label: 'Level',  icon: '⭐', color: '#C8912A', bg: dark ? 'rgba(200,145,42,0.12)' : '#FBF3E2', border: 'rgba(200,145,42,0.2)' },
         ].map(s => (
-          <div key={s.label} style={{ background: s.bg, borderRadius: 12, padding: '1rem 1.25rem', border: `0.5px solid ${s.color}22` }}>
-            <div style={{ fontSize: 26, fontWeight: 500, color: s.color }}>{s.num}</div>
-            <div style={{ fontSize: 12, color: '#7A6552', marginTop: 2 }}>{s.label}</div>
+          <div key={s.label} style={{ background: s.bg, border: `1px solid ${s.border}`, borderRadius: 14, padding: '14px 12px', textAlign: 'center' }}>
+            <div style={{ fontSize: 20, marginBottom: 4 }}>{s.icon}</div>
+            <div style={{ fontSize: 20, fontWeight: 700, color: s.color, lineHeight: 1 }}>{s.num}</div>
+            <div style={{ fontSize: 11, color: muted, marginTop: 3 }}>{s.label}</div>
           </div>
         ))}
       </div>
 
-      {/* Weekly streak */}
-      <div className="fade-up-3" style={{ background: '#fff', border: '0.5px solid rgba(26,18,8,0.1)', borderRadius: 14, padding: '1.25rem', marginBottom: '1.5rem' }}>
-        <div style={{ fontSize: 12, fontWeight: 500, color: '#7A6552', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 12 }}>This week</div>
-        <div style={{ display: 'flex', gap: 6 }}>
-          {days.map((d, i) => (
-            <div key={d} style={{ flex: 1, padding: '10px 0', borderRadius: 8, textAlign: 'center', fontSize: 11, fontWeight: 500, background: streakStatus[i] === 'done' ? '#E0F2F2' : streakStatus[i] === 'today' ? '#E8611A' : '#F0E8DC', color: streakStatus[i] === 'done' ? '#0D6E6E' : streakStatus[i] === 'today' ? '#FAF6F0' : '#7A6552' }}>
-              <div>{d}</div>
-              <div style={{ marginTop: 4 }}>{streakStatus[i] === 'done' ? '✓' : streakStatus[i] === 'today' ? '→' : '·'}</div>
+      {/* ── Weekly streak ── */}
+      <div className="fade-up-3 bl-card" style={{ padding: '18px', marginBottom: 16 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+          <span style={{ fontSize: 12, fontWeight: 600, color: muted, letterSpacing: '0.07em', textTransform: 'uppercase' }}>This week</span>
+          {streak > 0 && <span style={{ fontSize: 12, color: '#E8611A', fontWeight: 600 }}>{streak} day streak 🔥</span>}
+        </div>
+        <div style={{ display: 'flex', gap: 5 }}>
+          {days.map((d, i) => {
+            const status = streakStatus[i];
+            const isDone  = status === 'done';
+            const isToday = status === 'today';
+            return (
+              <div key={d} className={`bl-streak-day ${status}`} style={{ flex: 1 }}>
+                <div style={{ fontSize: 10, fontWeight: 600, color: isDone || isToday ? '#FAF6F0' : muted, marginBottom: 4 }}>{d}</div>
+                <div style={{ fontSize: 14, color: isDone || isToday ? '#FAF6F0' : muted }}>
+                  {isDone ? '✓' : isToday ? '●' : '·'}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* ── Continue lesson ── */}
+      <div className="fade-up-4 bl-continue-card" style={{ marginBottom: 16 }} onClick={() => navigate('/lessons')}>
+        <div style={{ fontSize: 11, color: 'rgba(250,246,240,0.35)', letterSpacing: '0.09em', textTransform: 'uppercase', marginBottom: 12 }}>
+          Continue where you left off
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+          <div style={{ width: 50, height: 50, borderRadius: 12, background: 'rgba(232,97,26,0.2)', border: '1px solid rgba(232,97,26,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24, flexShrink: 0 }}>📖</div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 15, fontWeight: 600, color: '#FAF6F0', marginBottom: 3 }}>Greetings &amp; Introductions</div>
+            <div style={{ fontSize: 12, color: 'rgba(250,246,240,0.45)', marginBottom: 10 }}>Learn basic Bhojpuri greetings</div>
+            <div style={{ height: 4, background: 'rgba(250,246,240,0.1)', borderRadius: 99, overflow: 'hidden' }}>
+              <div style={{ height: '100%', borderRadius: 99, background: 'linear-gradient(90deg, #E8611A, #C8912A)', width: '60%' }} />
+            </div>
+          </div>
+          <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'rgba(232,97,26,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#E8611A', fontSize: 16, flexShrink: 0 }}>→</div>
+        </div>
+      </div>
+
+      {/* ── Quick actions ── */}
+      <div className="fade-up-5" style={{ marginBottom: 8 }}>
+        <p style={{ fontSize: 12, fontWeight: 600, color: muted, letterSpacing: '0.07em', textTransform: 'uppercase', marginBottom: 12 }}>Quick actions</p>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+          {quickActions.map(item => (
+            <div key={item.to} className="bl-quick-card" onClick={() => navigate(item.to)}
+              style={{ background: item.light, border: `1px solid ${item.color}22` }}>
+              <div style={{ fontSize: 26, marginBottom: 8 }}>{item.icon}</div>
+              <div style={{ fontSize: 14, fontWeight: 600, color: item.color, marginBottom: 2 }}>{item.label}</div>
+              <div style={{ fontSize: 11, color: muted }}>{item.sub}</div>
             </div>
           ))}
         </div>
       </div>
 
-      {/* Continue lesson */}
-      {next && (
-        <div className="fade-up-4" style={{ background: '#1A1208', borderRadius: 14, padding: '1.5rem', marginBottom: '1.5rem', cursor: 'pointer', transition: 'transform 0.15s' }}
-          onClick={() => nav('/lessons')}
-          onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-2px)'}
-          onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}>
-          <div style={{ fontSize: 11, color: 'rgba(250,246,240,0.4)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 10 }}>Continue where you left off</div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <div style={{ width: 44, height: 44, background: 'rgba(232,97,26,0.2)', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22 }}>{next.icon}</div>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 16, fontWeight: 500, color: '#FAF6F0' }}>{next.title}</div>
-              <div style={{ fontSize: 13, color: 'rgba(250,246,240,0.5)', marginTop: 2 }}>{next.subtitle}</div>
-              <div style={{ height: 4, background: 'rgba(250,246,240,0.1)', borderRadius: 99, marginTop: 8 }}>
-                <div style={{ height: '100%', borderRadius: 99, background: '#E8611A', width: `${next.progress}%`, transition: 'width 0.5s' }} />
-              </div>
-            </div>
-            <span style={{ color: '#E8611A', fontSize: 20 }}>→</span>
-          </div>
-        </div>
-      )}
-
-<div style={{ background: '#FBF3E2', border: '0.5px solid rgba(200,145,42,0.25)', borderRadius: 14, padding: '1.25rem' }}>
-        <div style={{ fontSize: 11, fontWeight: 500, color: '#C8912A', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 10 }}>
-          🌍 Word of the day
-        </div>
-        <div style={{ fontSize: 13, color: '#7A6552' }}>
-          Go to <strong>Daily Practice</strong> and select your language to see today's word! 🎯
-        </div>
+      {/* ── Word of the day ── */}
+      <div style={{ background: dark ? 'rgba(200,145,42,0.1)' : '#FBF3E2', border: `1px solid ${dark ? 'rgba(200,145,42,0.2)' : 'rgba(200,145,42,0.3)'}`, borderRadius: 16, padding: '16px 18px', marginTop: 16 }}>
+        <div style={{ fontSize: 11, fontWeight: 700, color: '#C8912A', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 8 }}>🌍 Word of the day</div>
+        <p style={{ fontSize: 13, color: muted, lineHeight: 1.6, margin: 0 }}>
+          Go to{' '}
+          <span onClick={() => navigate('/daily')} style={{ fontWeight: 700, color: text, cursor: 'pointer', borderBottom: `1.5px solid ${text}` }}>
+            Daily Practice
+          </span>{' '}
+          and pick your language to see today's word! 🎯
+        </p>
       </div>
+
     </div>
   );
 }

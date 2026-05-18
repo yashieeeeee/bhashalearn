@@ -1,0 +1,334 @@
+/* ═══════════════════════════════════════════════════════════════
+   BhashaLearn — Design Upgrade
+   Import this at the TOP of index.css: @import './design.css';
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── Extra tokens (augments existing :root, no conflicts) ── */
+:root {
+  --glow-orange: 0 0 0 3px rgba(232,97,26,0.18);
+  --glow-teal:   0 0 0 3px rgba(13,110,110,0.18);
+  --card-radius: 16px;
+  --shine: linear-gradient(135deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0) 60%);
+}
+
+/* ── Smooth scrolling ── */
+html { scroll-behavior: smooth; }
+
+/* ── Button base reset ── */
+button { font-family: inherit; }
+
+/* ── Page section headings ── */
+.bl-page-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--ink);
+  margin: 0 0 4px;
+  line-height: 1.2;
+}
+.bl-page-sub {
+  font-size: 14px;
+  color: var(--ink-muted);
+  margin: 0 0 20px;
+}
+
+/* ── Glassy card ── */
+.bl-card {
+  background: #fff;
+  border-radius: var(--card-radius);
+  border: 1px solid rgba(26,18,8,0.07);
+  box-shadow: 0 2px 12px rgba(26,18,8,0.06);
+  transition: box-shadow 0.2s, transform 0.2s;
+}
+.bl-card:hover { box-shadow: 0 6px 24px rgba(26,18,8,0.10); }
+.bl-card--clickable { cursor: pointer; }
+.bl-card--clickable:hover { transform: translateY(-2px); }
+
+/* ── Dark card ── */
+.bl-card-dark {
+  background: #1A1208;
+  border-radius: var(--card-radius);
+  border: 1px solid rgba(255,255,255,0.06);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+  position: relative;
+  overflow: hidden;
+}
+.bl-card-dark::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--shine);
+  pointer-events: none;
+}
+
+/* ── Stat pill ── */
+.bl-stat-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 99px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* ── XP bar ── */
+.bl-xp-track {
+  height: 8px;
+  background: rgba(26,18,8,0.08);
+  border-radius: 99px;
+  overflow: hidden;
+}
+.bl-xp-fill {
+  height: 100%;
+  border-radius: 99px;
+  background: linear-gradient(90deg, #0D6E6E, #E8611A);
+  transition: width 0.6s cubic-bezier(0.34,1.56,0.64,1);
+}
+
+/* ── Language pill button ── */
+.bl-lang-pill {
+  padding: 8px 16px;
+  border-radius: 99px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+  border: 1.5px solid rgba(26,18,8,0.12);
+  background: #fff;
+  color: #1A1208;
+}
+.bl-lang-pill:hover { background: #F0E8DC; }
+.bl-lang-pill.active {
+  background: #1A1208;
+  color: #FAF6F0;
+  border-color: #1A1208;
+  box-shadow: 0 2px 8px rgba(26,18,8,0.20);
+}
+
+/* ── Quiz option button ── */
+.bl-option-btn {
+  width: 100%;
+  text-align: left;
+  padding: 15px 18px;
+  border-radius: 14px;
+  border: 2px solid rgba(26,18,8,0.10);
+  background: #fff;
+  color: #1A1208;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+  font-family: 'Noto Sans Devanagari', 'DM Sans', sans-serif;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.bl-option-btn:hover:not(:disabled) {
+  border-color: #E8611A;
+  background: #FDF0E8;
+  transform: translateX(4px);
+}
+.bl-option-btn:disabled { cursor: default; }
+.bl-option-btn.correct {
+  background: #E0F2F2;
+  border-color: #0D6E6E;
+  color: #0D6E6E;
+}
+.bl-option-btn.wrong {
+  background: #FEE2E2;
+  border-color: #DC2626;
+  color: #DC2626;
+}
+.bl-option-letter {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: rgba(26,18,8,0.06);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  flex-shrink: 0;
+  font-family: 'DM Sans', sans-serif;
+}
+.bl-option-btn.correct .bl-option-letter { background: #0D6E6E; color: #fff; }
+.bl-option-btn.wrong   .bl-option-letter { background: #DC2626; color: #fff; }
+
+/* ── Feedback banner ── */
+.bl-feedback-bar {
+  padding: 14px 18px;
+  border-radius: 14px;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.5;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  animation: slideUp 0.25s ease;
+}
+.bl-feedback-bar.correct { background: #E0F2F2; color: #065F46; }
+.bl-feedback-bar.wrong   { background: #FEE2E2; color: #991B1B; }
+
+/* ── Lesson row card ── */
+.bl-lesson-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 18px;
+  background: #fff;
+  border: 1px solid rgba(26,18,8,0.08);
+  border-radius: var(--card-radius);
+  cursor: pointer;
+  transition: all 0.18s;
+  box-shadow: 0 1px 4px rgba(26,18,8,0.05);
+}
+.bl-lesson-row:hover {
+  border-color: #E8611A;
+  box-shadow: 0 4px 16px rgba(232,97,26,0.12);
+  transform: translateX(6px);
+}
+
+/* ── Word card ── */
+.bl-word-card {
+  background: #fff;
+  border: 1.5px solid rgba(26,18,8,0.08);
+  border-radius: 14px;
+  padding: 16px 20px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.bl-word-card:hover  { border-color: rgba(232,97,26,0.4); }
+.bl-word-card.open   { background: #1A1208; border-color: #1A1208; }
+
+/* ── Quick-action grid card ── */
+.bl-quick-card {
+  padding: 18px;
+  border-radius: var(--card-radius);
+  cursor: pointer;
+  transition: all 0.18s;
+  border: 1px solid transparent;
+  position: relative;
+  overflow: hidden;
+}
+.bl-quick-card::before {
+  content: '';
+  position: absolute;
+  top: -40%;
+  right: -20%;
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.08);
+  transition: transform 0.3s;
+}
+.bl-quick-card:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,0.10); }
+.bl-quick-card:hover::before { transform: scale(1.3); }
+
+/* ── Streak day pill ── */
+.bl-streak-day {
+  flex: 1;
+  padding: 10px 0;
+  border-radius: 10px;
+  text-align: center;
+  transition: all 0.2s;
+}
+.bl-streak-day.done    { background: linear-gradient(135deg, #0D6E6E, #0A5555); }
+.bl-streak-day.today   { background: linear-gradient(135deg, #E8611A, #C94D12); box-shadow: 0 4px 12px rgba(232,97,26,0.35); }
+.bl-streak-day.upcoming{ background: rgba(26,18,8,0.04); }
+
+/* ── Sidebar nav item ── */
+.bl-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 20px;
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 400;
+  color: rgba(250,246,240,0.5);
+  border-right: 3px solid transparent;
+  transition: all 0.15s;
+  border-radius: 0;
+  position: relative;
+}
+.bl-nav-item:hover { color: rgba(250,246,240,0.85); background: rgba(250,246,240,0.04); }
+.bl-nav-item.active {
+  color: #FAF6F0;
+  font-weight: 600;
+  background: rgba(232,97,26,0.15);
+  border-right-color: #E8611A;
+}
+.bl-nav-item.active .bl-nav-icon {
+  filter: drop-shadow(0 0 6px rgba(232,97,26,0.6));
+}
+
+/* ── Continue lesson card ── */
+.bl-continue-card {
+  background: linear-gradient(135deg, #1A1208 60%, #2A1E0E);
+  border-radius: var(--card-radius);
+  padding: 20px 22px;
+  cursor: pointer;
+  transition: opacity 0.15s, transform 0.15s;
+  box-shadow: 0 6px 24px rgba(0,0,0,0.18);
+  position: relative;
+  overflow: hidden;
+}
+.bl-continue-card::before {
+  content: '';
+  position: absolute;
+  top: -30px; right: -30px;
+  width: 140px; height: 140px;
+  background: radial-gradient(circle, rgba(232,97,26,0.15), transparent 70%);
+  pointer-events: none;
+}
+.bl-continue-card:hover { opacity: 0.92; transform: translateY(-2px); }
+
+/* ── Animations ── */
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes popIn {
+  0%   { transform: scale(0.85); opacity: 0; }
+  70%  { transform: scale(1.04); }
+  100% { transform: scale(1);    opacity: 1; }
+}
+@keyframes shimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position:  200% center; }
+}
+
+.pop-in  { animation: popIn  0.35s cubic-bezier(0.34,1.56,0.64,1) both; }
+.slide-up { animation: slideUp 0.3s ease both; }
+
+/* ── Loading shimmer ── */
+.bl-shimmer {
+  background: linear-gradient(90deg, #F0E8DC 25%, #FAF6F0 50%, #F0E8DC 75%);
+  background-size: 200% auto;
+  animation: shimmer 1.4s linear infinite;
+  border-radius: 10px;
+}
+
+/* ── Score badge ── */
+.bl-score-badge {
+  background: linear-gradient(135deg, #FBF3E2, #F5E8CC);
+  border: 1.5px solid rgba(200,145,42,0.3);
+  border-radius: 99px;
+  padding: 5px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #C8912A;
+}
+
+/* ── Dark mode support ── */
+[data-theme="dark"] .bl-card         { background: #1A1208; border-color: rgba(250,246,240,0.08); }
+[data-theme="dark"] .bl-lang-pill    { background: rgba(250,246,240,0.06); color: #FAF6F0; border-color: rgba(250,246,240,0.12); }
+[data-theme="dark"] .bl-lang-pill:hover { background: rgba(250,246,240,0.12); }
+[data-theme="dark"] .bl-option-btn   { background: rgba(250,246,240,0.06); color: #FAF6F0; border-color: rgba(250,246,240,0.12); }
+[data-theme="dark"] .bl-option-btn:hover:not(:disabled) { background: rgba(232,97,26,0.15); border-color: #E8611A; }
+[data-theme="dark"] .bl-lesson-row   { background: #1A1208; border-color: rgba(250,246,240,0.08); }
+[data-theme="dark"] .bl-word-card    { background: rgba(250,246,240,0.04); border-color: rgba(250,246,240,0.08); }
+[data-theme="dark"] .bl-streak-day.upcoming { background: rgba(250,246,240,0.05); }
+[data-theme="dark"] .bl-xp-track     { background: rgba(250,246,240,0.08); }
