@@ -25,19 +25,20 @@
   --shadow-md: 0 4px 32px rgba(26,18,8,0.12);
 }
 
-[data-theme="dark"] .app-main,
-[data-theme="dark"] .app-main > div {
-  background: #0F0A06 !important;
+[data-theme="dark"] .app-main {
+  background: #0F0A06;
+  color: #FAF6F0;
+}
+
+[data-theme="dark"] .bl-page-title,
+[data-theme="dark"] h1,
+[data-theme="dark"] h2,
+[data-theme="dark"] h3 {
   color: #FAF6F0 !important;
 }
 
-[data-theme="dark"] .app-main * {
-  border-color: rgba(250,246,240,0.1) !important;
-}
-
-[data-theme="dark"] .app-main div[style] {
-  background-color: #1A1208 !important;
-  color: #FAF6F0 !important;
+[data-theme="dark"] .bl-page-sub {
+  color: rgba(250,246,240,0.55) !important;
 }
 
 html { font-size: 16px; }
