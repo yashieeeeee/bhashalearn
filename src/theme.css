@@ -1,0 +1,64 @@
+/* ─────────────────────────────────────────────
+   BhashaLearn Design Tokens
+   Import this once in your index.css or App.css
+───────────────────────────────────────────── */
+
+@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700&family=Noto+Sans+Devanagari:wght@400;500;600&display=swap');
+
+:root {
+  /* Brand Colors — inspired by the Indian tricolor */
+  --bl-saffron:        #F4601A;
+  --bl-saffron-dark:   #C94D12;
+  --bl-saffron-light:  #FEF0E8;
+  --bl-saffron-pale:   #FFF7F3;
+
+  --bl-green:          #1A7A4A;
+  --bl-green-dark:     #115C36;
+  --bl-green-light:    #E8F7EF;
+
+  --bl-gold:           #E8A020;
+  --bl-gold-light:     #FDF5E0;
+
+  --bl-navy:           #1A2340;
+  --bl-navy-light:     #EEF0F6;
+
+  --bl-purple:         #7B4FB0;
+  --bl-purple-light:   #F3ECFF;
+
+  --bl-red:            #D03030;
+  --bl-red-light:      #FEECEC;
+
+  --bl-sky:            #1A7AAA;
+  --bl-sky-light:      #E8F4FB;
+
+  /* Neutrals */
+  --bl-bg:             #FAFAF8;
+  --bl-surface:        #FFFFFF;
+  --bl-border:         #EBEBEA;
+  --bl-border-strong:  #D5D5D3;
+  --bl-text-primary:   #1A1A18;
+  --bl-text-secondary: #6B6B68;
+  --bl-text-muted:     #9E9E9B;
+
+  /* Typography */
+  --bl-font-display:   'Baloo 2', 'Noto Sans Devanagari', sans-serif;
+  --bl-font-body:      'Baloo 2', 'Noto Sans Devanagari', sans-serif;
+
+  /* Spacing */
+  --bl-radius-sm:   8px;
+  --bl-radius-md:   12px;
+  --bl-radius-lg:   16px;
+  --bl-radius-xl:   24px;
+  --bl-radius-pill: 999px;
+
+  /* Shadows */
+  --bl-shadow-sm:   0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
+  --bl-shadow-md:   0 4px 12px rgba(0,0,0,0.10), 0 2px 4px rgba(0,0,0,0.06);
+  --bl-shadow-card: 0 2px 8px rgba(0,0,0,0.07);
+
+  /* Transitions */
+  --bl-transition: 150ms ease;
+}
+
+/* Base reset for app */
+
