@@ -4,9 +4,73 @@ import { generateLesson, generateQuiz, chatWithTutor } from '../utils/claude';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../utils/supabase';
 
-if (window.speechSynthesis) {
-  window.speechSynthesis.getVoices();
-  window.speechSynthesis.onvoiceschanged = () => { window.speechSynthesis.getVoices(); };
+// Same TTS logic as Pronunciation.jsx — speaks roman text as fallback if no voice found
+const LANG_CONFIG = {
+  hindi:     { lang: 'hi-IN', useScript: true  },
+  bhojpuri:  { lang: 'hi-IN', useScript: true  },
+  tamil:     { lang: 'ta-IN', useScript: true  },
+  telugu:    { lang: 'te-IN', useScript: true  },
+  marathi:   { lang: 'mr-IN', useScript: true  },
+  bengali:   { lang: 'bn-IN', useScript: true  },
+  gujarati:  { lang: 'gu-IN', useScript: true  },
+  punjabi:   { lang: 'pa-IN', useScript: true  },
+  kannada:   { lang: 'kn-IN', useScript: true  },
+  malayalam: { lang: 'ml-IN', useScript: true  },
+  urdu:      { lang: 'ur-IN', useScript: true  },
+  odia:      { lang: 'or-IN', useScript: false },
+  assamese:  { lang: 'bn-IN', useScript: true  },
+};
+
+// speak(scriptText, romanText, langCode)
+// If no voice installed for that language, reads roman text in English accent
+// so the user always hears SOMETHING instead of silence.
+function speak(scriptText, romanText, langCode) {
+  window.speechSynthesis.cancel();
+
+  const config = LANG_CONFIG[langCode] || { lang: 'hi-IN', useScript: true };
+  const voices = window.speechSynthesis.getVoices();
+  const hasVoice = voices.some(v =>
+    v.lang === config.lang || v.lang.startsWith(config.lang.split('-')[0])
+  );
+
+  const textToSpeak = (config.useScript && hasVoice) ? scriptText : (romanText || scriptText);
+  const langToUse   = hasVoice ? config.lang : 'en-IN';
+
+  const utterance = new SpeechSynthesisUtterance(textToSpeak);
+  utterance.lang   = langToUse;
+  utterance.rate   = 0.75;
+  utterance.pitch  = 1;
+  utterance.volume = 1;
+
+  utterance.onerror = () => {
+    // Last resort: speak roman in English
+    const fallback = new SpeechSynthesisUtterance(romanText || scriptText);
+    fallback.lang = 'en-IN';
+    fallback.rate = 0.75;
+    window.speechSynthesis.speak(fallback);
+  };
+
+  const trySpeak = () => {
+    const v = window.speechSynthesis.getVoices();
+    if (v.length > 0) {
+      const best =
+        v.find(x => x.lang === langToUse) ||
+        v.find(x => x.lang.startsWith(langToUse.split('-')[0])) ||
+        v.find(x => x.lang.includes('IN') || x.lang.includes('PK')) ||
+        v[0];
+      if (best) utterance.voice = best;
+    }
+    window.speechSynthesis.speak(utterance);
+  };
+
+  if (window.speechSynthesis.getVoices().length > 0) {
+    trySpeak();
+  } else {
+    window.speechSynthesis.onvoiceschanged = () => {
+      window.speechSynthesis.onvoiceschanged = null;
+      trySpeak();
+    };
+  }
 }
 
 const LEVELS = [
@@ -15,14 +79,6 @@ const LEVELS = [
   { id: 3, name: 'Paragraphs', icon: '📖', desc: 'Read & translate full passages', color: '#7C3AED', bg: '#F5F3FF', xpNeeded: 6 },
 ];
 
-function speak(text, langCode) {
-  const langMap = { hindi:'hi-IN', bhojpuri:'hi-IN', tamil:'ta-IN', telugu:'te-IN', marathi:'mr-IN', bengali:'bn-IN', gujarati:'gu-IN', punjabi:'pa-IN', kannada:'kn-IN', malayalam:'ml-IN', urdu:'ur-IN', odia:'or-IN', assamese:'as-IN' };
-  window.speechSynthesis.cancel();
-  const u = new SpeechSynthesisUtterance(text);
-  u.lang = langMap[langCode] || 'hi-IN';
-  u.rate = 0.8;
-  window.speechSynthesis.speak(u);
-}
 
 /* ─── Paragraph Mode ──────────────────────────────────────────────────────── */
 function ParagraphMode({ lang, onBack }) {
@@ -139,17 +195,19 @@ function SentenceMode({ lesson, lang, onBack, onComplete }) {
         return lesson.words.filter(w => w.hindi !== word.hindi).sort(() => Math.random() - 0.5).slice(0, 3).map(w => w.target);
       }
       function shuffle(arr) { return arr.sort(() => Math.random() - 0.5); }
+      // Key word is replaced with ___ so the user must know the Bhojpuri word,
+      // not just match what they can read directly from the Hindi sentence.
       const templates = [
-        (w) => ({ hindi: `यह ${w.hindi} है`,       options: shuffle([w.target, ...getWrongOptions(w)]) }),
-        (w) => ({ hindi: `मुझे ${w.hindi} चाहिए`,  options: shuffle([w.target, ...getWrongOptions(w)]) }),
-        (w) => ({ hindi: `${w.hindi} अच्छा है`,    options: shuffle([w.target, ...getWrongOptions(w)]) }),
-        (w) => ({ hindi: `यह मेरा ${w.hindi} है`,  options: shuffle([w.target, ...getWrongOptions(w)]) }),
-        (w) => ({ hindi: `क्या यह ${w.hindi} है?`, options: shuffle([w.target, ...getWrongOptions(w)]) }),
+        (w) => ({ hindi: `यह ___ है`,       hint: w.meaning, options: shuffle([w.target, ...getWrongOptions(w)]) }),
+        (w) => ({ hindi: `मुझे ___ चाहिए`,  hint: w.meaning, options: shuffle([w.target, ...getWrongOptions(w)]) }),
+        (w) => ({ hindi: `___ अच्छा है`,    hint: w.meaning, options: shuffle([w.target, ...getWrongOptions(w)]) }),
+        (w) => ({ hindi: `यह मेरा ___ है`,  hint: w.meaning, options: shuffle([w.target, ...getWrongOptions(w)]) }),
+        (w) => ({ hindi: `क्या यह ___ है?`, hint: w.meaning, options: shuffle([w.target, ...getWrongOptions(w)]) }),
       ];
       const picked = [...lesson.words].sort(() => Math.random() - 0.5).slice(0, 5);
       const built = picked.map((word, i) => {
         const s = templates[i % templates.length](word);
-        return { hindi: s.hindi, options: s.options, correct: s.options.indexOf(word.target) };
+        return { hindi: s.hindi, hint: s.hint, options: s.options, correct: s.options.indexOf(word.target) };
       });
       setSentences(built);
     } catch { setSentences(null); }
@@ -208,8 +266,22 @@ function SentenceMode({ lesson, lang, onBack, onComplete }) {
         <div style={{ height: '100%', borderRadius: 99, background: 'linear-gradient(90deg, #E8611A, #C8912A)', width: `${(step / sentences.length) * 100}%`, transition: 'width 0.4s' }} />
       </div>
       <div className="bl-card-dark" style={{ padding: '28px 24px', textAlign: 'center', marginBottom: '1.25rem' }}>
-        <div style={{ fontSize: 11, color: 'rgba(250,246,240,0.35)', marginBottom: 14, textTransform: 'uppercase', letterSpacing: '0.09em' }}>Translate to {lang?.name}</div>
-        <div style={{ fontFamily: "'Noto Sans Devanagari',sans-serif", fontSize: 30, fontWeight: 600, color: '#FAF6F0', lineHeight: 1.4 }}>{s.hindi}</div>
+        <div style={{ fontSize: 11, color: 'rgba(250,246,240,0.35)', marginBottom: 14, textTransform: 'uppercase', letterSpacing: '0.09em' }}>Fill in the blank — {lang?.name}</div>
+        <div style={{ fontFamily: "'Noto Sans Devanagari',sans-serif", fontSize: 28, fontWeight: 600, color: '#FAF6F0', lineHeight: 1.6 }}>
+          {s.hindi.split('___').map((part, i, arr) => (
+            <span key={i}>
+              {part}
+              {i < arr.length - 1 && (
+                <span style={{ display: 'inline-block', borderBottom: '2px solid #E8611A', minWidth: 60, margin: '0 6px', color: 'transparent' }}>___</span>
+              )}
+            </span>
+          ))}
+        </div>
+        {s.hint && (
+          <div style={{ marginTop: 14, display: 'inline-flex', alignItems: 'center', gap: 6, background: 'rgba(232,97,26,0.15)', border: '1px solid rgba(232,97,26,0.25)', borderRadius: 99, padding: '5px 14px', fontSize: 13, color: '#F5C49A' }}>
+            💡 Meaning: {s.hint}
+          </div>
+        )}
       </div>
       <div style={{ display: 'grid', gap: 10, marginBottom: 12 }}>
         {s.options.map((opt, i) => {
@@ -425,7 +497,7 @@ function LessonDetail({ lesson, lang, onBack, onStartQuiz, onStartSentences }) {
                   <div style={{ minWidth: 90 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                       <span style={{ fontFamily: "'Noto Sans Devanagari',sans-serif", fontSize: 20, fontWeight: 600, color: open ? '#FAF6F0' : '#1A1208' }}>{word.hindi}</span>
-                      <button onClick={e => { e.stopPropagation(); speak(word.hindi, 'hindi'); }}
+                      <button onClick={e => { e.stopPropagation(); speak(word.hindi, word.roman, 'hindi'); }}
                         style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, padding: '2px', opacity: 0.6 }}>🔊</button>
                     </div>
                     <div style={{ fontSize: 11, color: open ? 'rgba(250,246,240,0.45)' : '#7A6552', marginTop: 2 }}>Hindi</div>
@@ -434,7 +506,7 @@ function LessonDetail({ lesson, lang, onBack, onStartQuiz, onStartSentences }) {
                   <div style={{ flex: 1 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                       <span style={{ fontSize: 20, fontWeight: 600, color: open ? '#F5C49A' : '#E8611A' }}>{word.target}</span>
-                      <button onClick={e => { e.stopPropagation(); speak(word.target, lang?.code); }}
+                      <button onClick={e => { e.stopPropagation(); speak(word.target, word.roman, lang?.code); }}
                         style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, padding: '2px', opacity: 0.8 }}>🔊</button>
                     </div>
                     <div style={{ fontSize: 11, color: open ? 'rgba(250,246,240,0.45)' : '#7A6552', marginTop: 2 }}>{word.roman}</div>
