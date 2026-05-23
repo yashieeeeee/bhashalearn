@@ -73,11 +73,11 @@ function Leaderboard() {
   const { user } = useAuth();
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
-useEffect(() => {
+  useEffect(() => {
     async function load() {
       const { data } = await supabase
         .from('profiles')
-        .select('id, name, total_xp, streak, badges')
+        .select('id, display_name, total_xp, streak, badges')
         .order('total_xp', { ascending: false })
         .limit(20);
       setLeaders(data || []);
@@ -108,11 +108,11 @@ useEffect(() => {
                 {i < 3 ? medals[i] : `#${i + 1}`}
               </div>
               <div style={{ width: 36, height: 36, borderRadius: '50%', background: '#E8611A', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 600, color: '#fff', flexShrink: 0 }}>
-                {(leader.name || 'U')[0].toUpperCase()}
+                {(leader.display_name || 'U')[0].toUpperCase()}
               </div>
               <div style={{ flex: 1 }}>
                 <div style={{ fontSize: 14, fontWeight: 500, color: '#1A1208' }}>
-                  {leader.name || 'Anonymous'} {leader.id === user?.id ? '(You)' : ''}
+                  {leader.display_name || 'Anonymous'} {leader.id === user?.id ? '(You)' : ''}
                 </div>
                 <div style={{ fontSize: 12, color: '#7A6552' }}>🔥 {leader.streak || 0} streak · {(leader.badges || []).length} badges</div>
               </div>
@@ -141,7 +141,12 @@ export default function Achievements() {
   // Check for newly earned badges
  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
-    if (!profile) return;
+    if (!profile || !user) return;
+
+    // Always sync display_name so leaderboard shows real name
+    const displayName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Learner';
+    supabase.from('profiles').update({ display_name: displayName }).eq('id', user.id);
+
     const justEarned = BADGES
       .filter(b => b.condition(profile) && !earnedBadgeIds.includes(b.id))
       .map(b => b.id);
@@ -151,9 +156,10 @@ export default function Achievements() {
       setShowConfetti(true);
       setTimeout(() => setShowConfetti(false), 3000);
 
-      // Save new badges to Supabase
+      // Save new badges + display_name to Supabase so leaderboard shows name
       const allBadges = [...new Set([...earnedBadgeIds, ...justEarned])];
-      supabase.from('profiles').update({ badges: allBadges }).eq('id', user.id);
+      const displayName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Learner';
+      supabase.from('profiles').update({ badges: allBadges, display_name: displayName }).eq('id', user.id);
     }
   }, [profile]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -189,7 +195,7 @@ export default function Achievements() {
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 6 }}>
           <span style={{ fontSize: 11, color: 'rgba(250,246,240,0.4)' }}>{xpInLevel} / {xpToNext} XP to Level {level + 1}</span>
-          <span style={{ fontSize: 11, color: 'rgba(250,246,240,0.4)' }}>{earnedBadgeIds.length} / {BADGES.length} badges</span>
+          <span style={{ fontSize: 11, color: 'rgba(250,246,240,0.4)' }}>{BADGES.filter(b => b.condition(profile)).length} / {BADGES.length} badges</span>
         </div>
 
         {/* Stats row */}
