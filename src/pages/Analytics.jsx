@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../utils/supabase';
 import { LANGUAGES } from '../data/content';
+import { BADGES } from './Achievements';
 
 function StatCard({ icon, label, value, color, bg, sub }) {
   return (
@@ -95,7 +96,7 @@ export default function Analytics() {
         <StatCard icon="📚" label="Lessons Done" value={profile?.lessons_completed || 0} color="#0D6E6E" bg="#E0F2F2" />
         <StatCard icon="⚡" label="Perfect Quizzes" value={profile?.perfect_quizzes || 0} color="#C8912A" bg="#FBF3E2" />
         <StatCard icon="📅" label="Daily Done" value={profile?.daily_completed || 0} color="#7C3AED" bg="#F5F3FF" />
-        <StatCard icon="🏅" label="Badges" value={(profile?.badges || []).length} color="#DC2626" bg="#FEF2F2" sub="of 12 total" />
+        <StatCard icon="🏅" label="Badges" value={BADGES.filter(b => b.condition(profile)).length} color="#DC2626" bg="#FEF2F2" sub="of 12 total" />
         <StatCard icon="🌍" label="Languages" value={Object.keys(xpMap).filter(k => xpMap[k] > 0).length} color="#059669" bg="#ECFDF5" sub="started" />
       </div>
 
