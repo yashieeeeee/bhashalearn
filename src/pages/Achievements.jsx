@@ -77,10 +77,17 @@ function Leaderboard() {
     async function load() {
       const { data } = await supabase
         .from('profiles')
-        .select('id, display_name, total_xp, streak, badges')
+        .select('id, total_xp, streak, badges')
         .order('total_xp', { ascending: false })
         .limit(20);
-      setLeaders(data || []);
+
+      // Enrich current user's row with their real name from auth metadata
+      const { data: { user: authUser } } = await supabase.auth.getUser();
+      const myName = authUser?.user_metadata?.full_name || authUser?.email?.split('@')[0] || 'You';
+      const enriched = (data || []).map(row =>
+        row.id === authUser?.id ? { ...row, display_name: myName } : { ...row, display_name: 'Learner' }
+      );
+      setLeaders(enriched);
       setLoading(false);
     }
     load();
@@ -145,8 +152,6 @@ export default function Achievements() {
  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (!profile || !user) return;
-
-    const displayName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Learner';
 
     // All badges whose condition is currently met
     const allEarned = BADGES.filter(b => b.condition(profile)).map(b => b.id);

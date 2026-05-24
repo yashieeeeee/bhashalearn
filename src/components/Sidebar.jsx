@@ -3,6 +3,7 @@ import { NavLink } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { signOut } from '../utils/supabase';
 import { useTheme } from '../context/ThemeContext';
+import { BADGES } from '../pages/Achievements';
 
 const navItems = [
   { to: '/',              icon: '🏠', label: 'Home'          },
@@ -11,7 +12,7 @@ const navItems = [
   { to: '/daily',         icon: '🔥', label: 'Daily'         },
   { to: '/flashcards',    icon: '🃏', label: 'Flashcards'    },
   { to: '/pronunciation', icon: '🎙️', label: 'Pronunciation' },
-  { to: '/path', icon: '🗺️', label: 'Learning Path' },
+  { to: '/learning-path', icon: '🗺️', label: 'Learning Path' },
   { to: '/achievements',  icon: '🏆', label: 'Achievements'  },
   { to: '/analytics',     icon: '📊', label: 'Analytics'     },
   { to: '/bookmarks',     icon: '🔖', label: 'Bookmarks'     },
@@ -95,7 +96,7 @@ export default function Sidebar({ children }) {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 10 }}>
             {[
               [profile?.streak || 0, '🔥', 'Streak'],
-              [(profile?.badges || []).length, '🏅', 'Badges'],
+              [BADGES.filter(b => b.condition(profile)).length, '🏅', 'Badges'],
             ].map(([num, icon, label]) => (
               <div key={label} style={{ background: 'rgba(250,246,240,0.05)', border: '1px solid rgba(250,246,240,0.06)', borderRadius: 10, padding: '8px 10px', textAlign: 'center' }}>
                 <div style={{ fontSize: 15, marginBottom: 2 }}>{icon}</div>
