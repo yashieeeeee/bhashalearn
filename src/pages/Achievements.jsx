@@ -136,6 +136,9 @@ export default function Achievements() {
   const [newBadges, setNewBadges] = useState([]);
 
   const earnedBadgeIds = profile?.badges || [];
+  // Live count based on conditions — always accurate even before DB saves
+  const earnedBadges = BADGES.filter(b => b.condition(profile));
+  const earnedCount  = earnedBadges.length;
   const totalXp = profile?.total_xp || 0;
 
   // Check for newly earned badges
@@ -197,7 +200,7 @@ export default function Achievements() {
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 6 }}>
           <span style={{ fontSize: 11, color: 'rgba(250,246,240,0.4)' }}>{xpInLevel} / {xpToNext} XP to Level {level + 1}</span>
-          <span style={{ fontSize: 11, color: 'rgba(250,246,240,0.4)' }}>{BADGES.filter(b => b.condition(profile)).length} / {BADGES.length} badges</span>
+          <span style={{ fontSize: 11, color: 'rgba(250,246,240,0.4)' }}>{earnedCount} / {BADGES.length} badges</span>
         </div>
 
         {/* Stats row */}
