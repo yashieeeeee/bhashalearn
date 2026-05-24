@@ -18,7 +18,7 @@ export default function Home() {
   const xpInLevel   = totalXp % 20;
 
   // Map each day of the week to its real status based on today's date
-  const todayIndex = (new Date().getDay() + 6) % 7; // 0=Mon,1=Tue,...,6=Sun
+  const todayIndex = (new Date().getDay() + 6) % 7; // Sun=6,Mon=0,Tue=1...Sat=5
   const streakStatus = WEEK_DAYS.map((_, i) => {
     if (i === todayIndex) return 'today';
     if (i < todayIndex && i >= todayIndex - (streak - 1)) return 'done';
@@ -27,7 +27,9 @@ export default function Home() {
 
   const text   = dark ? '#FAF6F0' : '#1A1208';
   const muted  = dark ? 'rgba(250,246,240,0.5)' : '#7A6552';
-  
+  const card   = dark ? '#1A1208' : '#FFFFFF';
+  const border = dark ? 'rgba(250,246,240,0.08)' : 'rgba(26,18,8,0.08)';
+  const bg     = dark ? '#0F0A06' : '#FAF6F0';
 
   const quickActions = [
     { icon: '⚡', label: 'Quick Quiz',     sub: 'Test your knowledge',   to: '/quiz',          color: '#E8611A', light: dark ? 'rgba(232,97,26,0.15)' : '#FDF0E8' },
