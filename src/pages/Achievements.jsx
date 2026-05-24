@@ -162,7 +162,7 @@ export default function Achievements() {
     // Always save ALL earned badges + display_name so nothing is lost
     if (allEarned.length > 0) {
       supabase.from('profiles')
-        .update({ badges: allEarned, display_name: displayName })
+        .update({ badges: allEarned })
         .eq('id', user.id);
     }
 
