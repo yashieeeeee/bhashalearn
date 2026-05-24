@@ -143,23 +143,25 @@ export default function Achievements() {
   useEffect(() => {
     if (!profile || !user) return;
 
-    // Always sync display_name so leaderboard shows real name
     const displayName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Learner';
-    supabase.from('profiles').update({ display_name: displayName }).eq('id', user.id);
 
-    const justEarned = BADGES
-      .filter(b => b.condition(profile) && !earnedBadgeIds.includes(b.id))
-      .map(b => b.id);
+    // All badges whose condition is currently met
+    const allEarned = BADGES.filter(b => b.condition(profile)).map(b => b.id);
+
+    // Newly earned = met condition but not yet in DB
+    const justEarned = allEarned.filter(id => !earnedBadgeIds.includes(id));
+
+    // Always save ALL earned badges + display_name so nothing is lost
+    if (allEarned.length > 0) {
+      supabase.from('profiles')
+        .update({ badges: allEarned, display_name: displayName })
+        .eq('id', user.id);
+    }
 
     if (justEarned.length > 0) {
       setNewBadges(justEarned);
       setShowConfetti(true);
       setTimeout(() => setShowConfetti(false), 3000);
-
-      // Save new badges + display_name to Supabase so leaderboard shows name
-      const allBadges = [...new Set([...earnedBadgeIds, ...justEarned])];
-      const displayName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Learner';
-      supabase.from('profiles').update({ badges: allBadges, display_name: displayName }).eq('id', user.id);
     }
   }, [profile]); // eslint-disable-line react-hooks/exhaustive-deps
 
