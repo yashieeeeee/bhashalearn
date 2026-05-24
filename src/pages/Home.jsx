@@ -2,7 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 
-const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+const WEEK_DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
 export default function Home() {
   const { user, profile } = useAuth();
@@ -17,13 +17,19 @@ export default function Home() {
   const level       = Math.floor(totalXp / 20) + 1;
   const xpInLevel   = totalXp % 20;
 
-  const streakStatus = days.map((_, i) =>
-    i < streak - 1 ? 'done' : i === streak - 1 ? 'today' : 'upcoming'
-  );
+  // Map each day of the week to its real status based on today's date
+  const todayIndex = (new Date().getDay() + 6) % 7; // 0=Mon,1=Tue,...,6=Sun
+  const streakStatus = WEEK_DAYS.map((_, i) => {
+    if (i === todayIndex) return 'today';
+    if (i < todayIndex && i >= todayIndex - (streak - 1)) return 'done';
+    return 'upcoming';
+  });
 
   const text   = dark ? '#FAF6F0' : '#1A1208';
   const muted  = dark ? 'rgba(250,246,240,0.5)' : '#7A6552';
-  
+  const card   = dark ? '#1A1208' : '#FFFFFF';
+  const border = dark ? 'rgba(250,246,240,0.08)' : 'rgba(26,18,8,0.08)';
+  const bg     = dark ? '#0F0A06' : '#FAF6F0';
 
   const quickActions = [
     { icon: '⚡', label: 'Quick Quiz',     sub: 'Test your knowledge',   to: '/quiz',          color: '#E8611A', light: dark ? 'rgba(232,97,26,0.15)' : '#FDF0E8' },
@@ -101,7 +107,7 @@ export default function Home() {
           {streak > 0 && <span style={{ fontSize: 12, color: '#E8611A', fontWeight: 600 }}>{streak} day streak 🔥</span>}
         </div>
         <div style={{ display: 'flex', gap: 5 }}>
-          {days.map((d, i) => {
+          {WEEK_DAYS.map((d, i) => {
             const status = streakStatus[i];
             const isDone  = status === 'done';
             const isToday = status === 'today';
