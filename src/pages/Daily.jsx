@@ -245,8 +245,8 @@ export default function Daily() {
   });
 
   const challenges = ALL_CHALLENGES[selectedLang] || ALL_CHALLENGES.bhojpuri;
-  const todayIndex = Math.floor(Date.now() / 86400000) % challenges.length;
-  const challenge = challenges[todayIndex];
+  const challengeIndex = Math.floor(Date.now() / 86400000) % challenges.length;
+  const challenge = challenges[challengeIndex];
   const currentLang = LANGUAGES.find(l => l.code === selectedLang);
 
   // Word of day — rotates daily per language
