@@ -3,7 +3,7 @@ import { LANGUAGES } from '../data/content';
 import { checkTranslation } from '../utils/claude';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../utils/supabase';
-const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+const WEEK_DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
 // Word of the day per language — rotates daily
 const WORDS_OF_DAY = {
@@ -237,9 +237,12 @@ export default function Daily() {
   const [loading, setLoading] = useState(false);
   const [checked, setChecked] = useState(false);
 
-  const streakStatus = days.map((_, i) =>
-    i < streak ? 'done' : i === Math.min(streak, 6) ? 'today' : 'upcoming'
-  );
+  const todayIndex = (new Date().getDay() + 6) % 7; // Mon=0 ... Sun=6
+  const streakStatus = WEEK_DAYS.map((_, i) => {
+    if (i === todayIndex) return 'today';
+    if (i < todayIndex && i >= todayIndex - (streak - 1)) return 'done';
+    return 'upcoming';
+  });
 
   const challenges = ALL_CHALLENGES[selectedLang] || ALL_CHALLENGES.bhojpuri;
   const todayIndex = Math.floor(Date.now() / 86400000) % challenges.length;
@@ -306,7 +309,7 @@ if (result.startsWith('Bahut badhiya') && user) {
       <div className="fade-up-2" style={{ background: '#fff', border: '0.5px solid rgba(26,18,8,0.1)', borderRadius: 14, padding: '1.25rem', marginBottom: '1.5rem' }}>
         <div style={{ fontSize: 12, fontWeight: 500, color: '#7A6552', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 12 }}>This week · 🔥 {streak} day streak</div>
         <div style={{ display: 'flex', gap: 6 }}>
-          {days.map((d, i) => (
+          {WEEK_DAYS.map((d, i) => (
             <div key={d} style={{ flex: 1, padding: '10px 0', borderRadius: 8, textAlign: 'center', fontSize: 11, fontWeight: 500, background: streakStatus[i] === 'done' ? '#E0F2F2' : streakStatus[i] === 'today' ? '#E8611A' : '#F0E8DC', color: streakStatus[i] === 'done' ? '#0D6E6E' : streakStatus[i] === 'today' ? '#FAF6F0' : '#7A6552' }}>
               <div>{d}</div>
               <div style={{ marginTop: 4 }}>{streakStatus[i] === 'done' ? '✓' : streakStatus[i] === 'today' ? '→' : '·'}</div>
