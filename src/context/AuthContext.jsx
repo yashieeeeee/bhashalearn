@@ -15,6 +15,7 @@ export function AuthProvider({ children }) {
       else setLoading(false);
     });
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (event === 'TOKEN_REFRESHED') return;
       setUser(session?.user ?? null);
       if (session?.user) loadProfile(session.user.id);
       else { setProfile(null); setLoading(false); }
