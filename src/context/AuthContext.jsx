@@ -16,29 +16,26 @@ export function AuthProvider({ children }) {
     });
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
   if (_event === 'TOKEN_REFRESHED' || _event === 'INITIAL_SESSION') return;
-  setUser(session?.user ?? null);
-  if (session?.user) {
-    // Only reload profile on actual sign in/out, not on tab focus
-    if (_event === 'SIGNED_IN') loadProfile(session.user.id);
-  } else {
-    setProfile(null);
-    setLoading(false);
+  if (_event === 'SIGNED_OUT') {
+    setUser(null); setProfile(null); setLoading(false);
   }
+  // Don't do anything else — SIGNED_IN is already handled by getSession above
 });
     return () => subscription.unsubscribe();
   }, []);
 
   async function loadProfile(userId) {
-    setLoading(true);
-    let p = await getProfile(userId);
-    if (!p) {
-      await upsertProfile(userId, { streak: 0, words_learned: 0 });
-      p = await getProfile(userId);
-    }
-    const streak = await updateStreak(userId);
-    setProfile({ ...p, streak });
-    setLoading(false);
+  // Don't show loading spinner if we already have a profile (e.g. tab refocus)
+  if (!profile) setLoading(true);
+  let p = await getProfile(userId);
+  if (!p) {
+    await upsertProfile(userId, { streak: 0, words_learned: 0 });
+    p = await getProfile(userId);
   }
+  const streak = await updateStreak(userId);
+  setProfile(prev => ({ ...p, streak }));
+  setLoading(false);
+}
 
   async function refreshProfile() {
     if (user) await loadProfile(user.id);
