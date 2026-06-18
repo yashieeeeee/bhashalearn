@@ -12,7 +12,7 @@ const navItems = [
   { to: '/daily',         icon: '🔥', label: 'Daily'         },
   { to: '/flashcards',    icon: '🃏', label: 'Flashcards'    },
   { to: '/pronunciation', icon: '🎙️', label: 'Pronunciation' },
-  { to: '/learning-path', icon: '🗺️', label: 'Learning Path' },
+  { to: '/path', icon: '🗺️', label: 'Learning Path' },
   { to: '/achievements',  icon: '🏆', label: 'Achievements'  },
   { to: '/analytics',     icon: '📊', label: 'Analytics'     },
   { to: '/bookmarks',     icon: '🔖', label: 'Bookmarks'     },
@@ -22,6 +22,7 @@ const mobileNavItems = [
   { to: '/',           icon: '🏠', label: 'Home'    },
   { to: '/lessons',    icon: '📚', label: 'Lessons' },
   { to: '/quiz',       icon: '⚡', label: 'Quiz'    },
+  { to: '/path', icon: '🗺️', label: 'Learning Path' },
   { to: '/daily',      icon: '🔥', label: 'Daily'   },
   { to: '/achievements', icon: '🏆', label: 'Wins'  },
 ];

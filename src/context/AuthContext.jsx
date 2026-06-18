@@ -15,11 +15,16 @@ export function AuthProvider({ children }) {
       else setLoading(false);
     });
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (_event === 'TOKEN_REFRESHED') return;
-      setUser(session?.user ?? null);
-      if (session?.user) loadProfile(session.user.id);
-      else { setProfile(null); setLoading(false); }
-    });
+  if (_event === 'TOKEN_REFRESHED' || _event === 'INITIAL_SESSION') return;
+  setUser(session?.user ?? null);
+  if (session?.user) {
+    // Only reload profile on actual sign in/out, not on tab focus
+    if (_event === 'SIGNED_IN') loadProfile(session.user.id);
+  } else {
+    setProfile(null);
+    setLoading(false);
+  }
+});
     return () => subscription.unsubscribe();
   }, []);
 
