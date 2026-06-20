@@ -8,42 +8,79 @@ const LANGS = ['bhojpuri','tamil','telugu','marathi','bengali','gujarati','kanna
 const LANG_EMOJI = { bhojpuri:'🌾', tamil:'🌴', telugu:'🌺', marathi:'🦁', bengali:'🎨', gujarati:'🪔', kannada:'🌿', malayalam:'🌊', punjabi:'🌻', odia:'🪷', urdu:'🌙', assamese:'🦋' };
 const OPTION_LETTERS = ['A','B','C','D'];
 
-export default function Quiz() {
-  const { user, profile } = useAuth();
-  const [selectedLang, setSelectedLang] = useState('bhojpuri');
-  const [questions, setQuestions]       = useState(null);
-  const [loading, setLoading]           = useState(false);
-  const [qIndex, setQIndex]             = useState(0);
-  const [score, setScore]               = useState(0);
-  const [selected, setSelected]         = useState(null);
-  const [done, setDone]                 = useState(false);
-  const [saved, setSaved]               = useState(false);
-  const [history, setHistory]           = useState(null);
-  const [showHistory, setShowHistory]   = useState(false);
+// Persist quiz state across tab switches
+function getS(key, def) {
+  try {
+    const v = sessionStorage.getItem('quiz_' + key);
+    return v !== null ? JSON.parse(v) : def;
+  } catch {
+    return def;
+  }
+}
 
+function setS(key, val) {
+  try {
+    sessionStorage.setItem('quiz_' + key, JSON.stringify(val));
+  } catch {}
+}
+
+export default function Quiz() {
+  const [selectedLang, setSelectedLang] = useState(() => getS('lang', 'bhojpuri'));
+const [questions, setQuestions]       = useState(() => getS('questions', null));
+const [loading, setLoading]           = useState(false);
+const [qIndex, setQIndex]             = useState(() => getS('qIndex', 0));
+const [score, setScore]               = useState(() => getS('score', 0));
+const [selected, setSelected]         = useState(() => getS('selected', null));
+const [done, setDone]                 = useState(() => getS('done', false));
+const [saved, setSaved]               = useState(() => getS('saved', false));
+const [history, setHistory]           = useState(null);
+const [showHistory, setShowHistory]   = useState(false);
+const { user, profile } = useAuth();  
   /* ── All logic unchanged ── */
   async function startQuiz(lang) {
     if (loading) return;
-    setLoading(true); setSelectedLang(lang);
+    setLoading(true);
+    setSelectedLang(lang);
+    setS('lang', lang);
     const allWords = (LESSONS_DATA[lang] || []).flatMap(l => l.words).slice(0, 12);
     try {
       const data = await generateQuiz(allWords);
       setQuestions(data.questions);
-      setQIndex(0); setScore(0); setSelected(null); setDone(false); setSaved(false);
+setS('questions', data.questions);
+
+setQIndex(0);
+setS('qIndex', 0);
+
+setScore(0);
+setS('score', 0);
+
+setSelected(null);
+setS('selected', null);
+
+setDone(false);
+setS('done', false);
+
+setSaved(false);
+setS('saved', false);
     } catch (e) { alert('Quiz error: ' + e.message); }
     setLoading(false);
   }
 
   function pick(i) {
     if (selected !== null || !questions) return;
-    setSelected(i);
-    if (questions[qIndex].correct === i) setScore(s => s + 1);
+    setSelected(i);setS('selected', i);
+    if (questions[qIndex].correct === i) {
+  setScore(s => {
+    setS('score', s + 1);
+    return s + 1;
+  });
+}
   }
 
   async function next() {
     if (!questions) return;
     if (qIndex + 1 >= questions.length) {
-      setDone(true);
+      setDone(true);setS('done', true);
       const finalScore = score;
       if (user && !saved) {
         await saveQuizScore(user.id, finalScore, questions.length, selectedLang);
@@ -53,11 +90,17 @@ export default function Quiz() {
             ? (profile?.perfect_quizzes || 0) + 1
             : (profile?.perfect_quizzes || 0),
         }).eq('id', user.id);
-        setSaved(true);
+        setSaved(true);setS('saved', true);
       }
       return;
     }
-    setQIndex(i => i + 1); setSelected(null);
+    const nextIndex = qIndex + 1;
+
+setQIndex(nextIndex);
+setS('qIndex', nextIndex);
+
+setSelected(null);
+setS('selected', null);
   }
 
   async function loadHistory() {
@@ -66,7 +109,23 @@ export default function Quiz() {
     setHistory(data); setShowHistory(true);
   }
 
-  function reset() { setQuestions(null); setDone(false); setSaved(false); setShowHistory(false); setSelected(null); }
+  function reset() {
+  setQuestions(null);
+  setDone(false);
+  setSaved(false);
+  setShowHistory(false);
+  setSelected(null);
+
+  [
+    'lang',
+    'questions',
+    'qIndex',
+    'score',
+    'selected',
+    'done',
+    'saved'
+  ].forEach(k => sessionStorage.removeItem('quiz_' + k));
+}
 
   /* ── History screen ── */
   if (showHistory) return (
