@@ -5,6 +5,9 @@
 
 /* ── Extra tokens (augments existing :root, no conflicts) ── */
 :root {
+  --bl-text:    #1A1208;
+  --bl-muted:   #7A6552;
+  --bl-surface: #FFFFFF;
   --glow-orange: 0 0 0 3px rgba(232,97,26,0.18);
   --glow-teal:   0 0 0 3px rgba(13,110,110,0.18);
   --card-radius: 16px;
@@ -332,3 +335,10 @@ button { font-family: inherit; }
 [data-theme="dark"] .bl-word-card    { background: rgba(250,246,240,0.04); border-color: rgba(250,246,240,0.08); }
 [data-theme="dark"] .bl-streak-day.upcoming { background: rgba(250,246,240,0.05); }
 [data-theme="dark"] .bl-xp-track     { background: rgba(250,246,240,0.08); }
+
+/* ── Dark mode text/surface flips ── */
+[data-theme="dark"] {
+  --bl-text:    #FAF6F0;
+  --bl-muted:   rgba(250,246,240,0.55);
+  --bl-surface: #1E1510;
+}

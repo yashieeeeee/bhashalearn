@@ -100,7 +100,7 @@ function JumbleQuestion({ q, onCorrect, onWrong }) {
           );
         })}
         {picked.length > 0 && !status && (
-          <button onClick={removeLast} style={{ width: 44, height: 52, borderRadius: 10, border: '2px solid rgba(26,18,8,0.1)', background: '#fff', fontSize: 18, cursor: 'pointer', color: '#7A6552' }}>⌫</button>
+          <button onClick={removeLast} style={{ width: 44, height: 52, borderRadius: 10, border: '2px solid rgba(26,18,8,0.1)', background: 'var(--bl-surface, #fff)', fontSize: 18, cursor: 'pointer', color: 'var(--bl-muted, #7A6552)' }}>⌫</button>
         )}
       </div>
 
@@ -163,7 +163,7 @@ function SentenceBuilderQuestion({ q, onCorrect, onWrong }) {
         <div style={{ fontSize: 14, color: 'rgba(250,246,240,0.5)' }}>{q.english}</div>
       </div>
 
-      <div style={{ minHeight: 64, background: '#fff', border: `2px dashed ${status === 'correct' ? '#0D6E6E' : status === 'wrong' ? '#DC2626' : 'rgba(26,18,8,0.15)'}`, borderRadius: 14, padding: '12px 16px', marginBottom: 16, display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
+      <div style={{ minHeight: 64, background: 'var(--bl-surface, #fff)', border: `2px dashed ${status === 'correct' ? '#0D6E6E' : status === 'wrong' ? '#DC2626' : 'rgba(26,18,8,0.15)'}`, borderRadius: 14, padding: '12px 16px', marginBottom: 16, display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
         {picked.length === 0 && <span style={{ color: '#D0C4B8', fontSize: 14 }}>Tap words below to build the sentence...</span>}
         {picked.map((p, i) => (
           <button key={i} onClick={() => removeWord(i)}
@@ -309,10 +309,10 @@ export default function Quiz() {
 
   if (showHistory) return (
     <div style={{ maxWidth: 520 }} className="fade-up">
-      <button onClick={() => setShowHistory(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#7A6552', fontSize: 14, marginBottom: '1.5rem', padding: 0 }}>← Back</button>
+      <button onClick={() => setShowHistory(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--bl-muted, #7A6552)', fontSize: 14, marginBottom: '1.5rem', padding: 0 }}>← Back</button>
       <h2 className="bl-page-title">Quiz History</h2>
       <p className="bl-page-sub">Your last 10 scores</p>
-      {!history?.length && <p style={{ color: '#7A6552', textAlign: 'center', padding: '2rem 0' }}>No scores yet! ⚡</p>}
+      {!history?.length && <p style={{ color: 'var(--bl-muted, #7A6552)', textAlign: 'center', padding: '2rem 0' }}>No scores yet! ⚡</p>}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
         {history?.map((s, i) => {
           const pct = Math.round((s.score / s.total) * 100);
@@ -322,13 +322,13 @@ export default function Quiz() {
               <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                 <div style={{ width: 40, height: 40, borderRadius: 10, background: good ? '#E0F2F2' : '#FEE2E2', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18 }}>{LANG_EMOJI[s.topic] || '⚡'}</div>
                 <div>
-                  <div style={{ fontSize: 14, fontWeight: 600, color: '#1A1208', textTransform: 'capitalize' }}>{s.topic}</div>
-                  <div style={{ fontSize: 11, color: '#7A6552', marginTop: 2 }}>{new Date(s.created_at).toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' })}</div>
+                  <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--bl-text, #1A1208)', textTransform: 'capitalize' }}>{s.topic}</div>
+                  <div style={{ fontSize: 11, color: 'var(--bl-muted, #7A6552)', marginTop: 2 }}>{new Date(s.created_at).toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' })}</div>
                 </div>
               </div>
               <div style={{ textAlign: 'right' }}>
                 <div style={{ fontSize: 22, fontWeight: 700, color: good ? '#0D6E6E' : '#E8611A' }}>{s.score}/{s.total}</div>
-                <div style={{ fontSize: 11, color: '#7A6552' }}>{pct}%</div>
+                <div style={{ fontSize: 11, color: 'var(--bl-muted, #7A6552)' }}>{pct}%</div>
               </div>
             </div>
           );
@@ -354,14 +354,14 @@ export default function Quiz() {
             style={{ padding: '18px 14px', borderRadius: 16, background: quizMode === m.mode ? m.bg : '#fff', border: `2px solid ${quizMode === m.mode ? m.color : 'rgba(26,18,8,0.08)'}`, cursor: 'pointer', textAlign: 'center', transition: 'all 0.15s', boxShadow: quizMode === m.mode ? `0 4px 16px ${m.border}` : 'none' }}>
             <div style={{ fontSize: 28, marginBottom: 8 }}>{m.icon}</div>
             <div style={{ fontSize: 13, fontWeight: 700, color: quizMode === m.mode ? m.color : '#1A1208', marginBottom: 4 }}>{m.label}</div>
-            <div style={{ fontSize: 11, color: '#7A6552', lineHeight: 1.4 }}>{m.desc}</div>
+            <div style={{ fontSize: 11, color: 'var(--bl-muted, #7A6552)', lineHeight: 1.4 }}>{m.desc}</div>
           </div>
         ))}
       </div>
 
       {quizMode && (
         <div className="fade-up-3">
-          <p style={{ fontSize: 12, fontWeight: 600, color: '#7A6552', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 12 }}>Now pick a language</p>
+          <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--bl-muted, #7A6552)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 12 }}>Now pick a language</p>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginBottom: '1.75rem' }}>
             {LANGS.map(lang => (
               <button key={lang} onClick={() => startQuiz(lang, quizMode)} className="bl-lang-pill" style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
@@ -382,7 +382,7 @@ export default function Quiz() {
   if (loading) return (
     <div style={{ textAlign: 'center', padding: '5rem 0' }} className="fade-up">
       <div style={{ fontSize: 48, marginBottom: 16 }}>⚡</div>
-      <div style={{ fontFamily: "'Playfair Display',serif", fontSize: 22, color: '#1A1208', marginBottom: 8, textTransform: 'capitalize' }}>
+      <div style={{ fontFamily: "'Playfair Display',serif", fontSize: 22, color: 'var(--bl-text, #1A1208)', marginBottom: 8, textTransform: 'capitalize' }}>
         {quizMode === 'mcq' ? 'AI generating questions...' : `Building ${quizMode} quiz...`}
       </div>
       <div className="bl-shimmer" style={{ width: 200, height: 8, margin: '20px auto 0', borderRadius: 99 }} />
@@ -395,11 +395,11 @@ export default function Quiz() {
     return (
       <div style={{ maxWidth: 480, margin: '0 auto', textAlign: 'center' }} className="fade-up">
         <div style={{ fontSize: 72, marginBottom: 8 }}>{perfect ? '🏆' : pct >= 60 ? '🌟' : '💪'}</div>
-        <h2 style={{ fontFamily: "'Playfair Display',serif", fontSize: 30, fontWeight: 700, color: '#1A1208', marginBottom: 8 }}>
+        <h2 style={{ fontFamily: "'Playfair Display',serif", fontSize: 30, fontWeight: 700, color: 'var(--bl-text, #1A1208)', marginBottom: 8 }}>
           {perfect ? 'Ekdum Perfect!' : pct >= 60 ? 'Bahut Badhiya!' : 'Keep Practicing!'}
         </h2>
-        <p style={{ fontSize: 15, color: '#7A6552', marginBottom: 6 }}>
-          You scored <strong style={{ color: '#1A1208' }}>{score}</strong> out of <strong style={{ color: '#1A1208' }}>{questions.length}</strong>
+        <p style={{ fontSize: 15, color: 'var(--bl-muted, #7A6552)', marginBottom: 6 }}>
+          You scored <strong style={{ color: 'var(--bl-text, #1A1208)' }}>{score}</strong> out of <strong style={{ color: 'var(--bl-text, #1A1208)' }}>{questions.length}</strong>
         </p>
         {saved && (
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: '#E0F2F2', color: '#0D6E6E', borderRadius: 99, padding: '6px 14px', fontSize: 13, fontWeight: 600, marginBottom: '1.5rem' }}>
@@ -414,7 +414,7 @@ export default function Quiz() {
           ].map(s => (
             <div key={s.label} style={{ background: s.bg, borderRadius: 14, padding: '16px 8px' }}>
               <div style={{ fontSize: 24, fontWeight: 700, color: s.color }}>{s.val}</div>
-              <div style={{ fontSize: 11, color: '#7A6552', marginTop: 2 }}>{s.label}</div>
+              <div style={{ fontSize: 11, color: 'var(--bl-muted, #7A6552)', marginTop: 2 }}>{s.label}</div>
             </div>
           ))}
         </div>
@@ -433,7 +433,7 @@ export default function Quiz() {
   return (
     <div style={{ maxWidth: 580 }}>
       <div className="fade-up" style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: '1.25rem' }}>
-        <button onClick={reset} style={{ background: 'rgba(26,18,8,0.06)', border: 'none', borderRadius: 8, width: 32, height: 32, cursor: 'pointer', fontSize: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#7A6552', flexShrink: 0 }}>✕</button>
+        <button onClick={reset} style={{ background: 'rgba(26,18,8,0.06)', border: 'none', borderRadius: 8, width: 32, height: 32, cursor: 'pointer', fontSize: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--bl-muted, #7A6552)', flexShrink: 0 }}>✕</button>
         <div style={{ flex: 1, height: 8, background: 'rgba(26,18,8,0.08)', borderRadius: 99, overflow: 'hidden' }}>
           <div style={{ height: '100%', borderRadius: 99, background: 'linear-gradient(90deg, #E8611A, #C8912A)', width: `${progress}%`, transition: 'width 0.4s ease' }} />
         </div>
@@ -445,8 +445,8 @@ export default function Quiz() {
         <div className="bl-score-badge">{score} pts</div>
       </div>
 
-      <div style={{ fontSize: 13, color: '#7A6552', marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: 8 }}>
-        <span style={{ fontWeight: 600, color: '#1A1208' }}>Question {qIndex + 1}</span>
+      <div style={{ fontSize: 13, color: 'var(--bl-muted, #7A6552)', marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: 8 }}>
+        <span style={{ fontWeight: 600, color: 'var(--bl-text, #1A1208)' }}>Question {qIndex + 1}</span>
         <span>of {questions.length}</span>
         <span>·</span>
         <span style={{ textTransform: 'capitalize' }}>{selectedLang} {LANG_EMOJI[selectedLang]}</span>

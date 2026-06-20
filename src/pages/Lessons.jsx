@@ -121,12 +121,12 @@ function ParagraphMode({ lang, onBack }) {
 
   return (
     <div className="fade-up" style={{ maxWidth: 640 }}>
-      <button onClick={onBack} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#7A6552', fontSize: 14, marginBottom: '1.5rem', padding: 0 }}>← Back to levels</button>
+      <button onClick={onBack} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--bl-muted, #7A6552)', fontSize: 14, marginBottom: '1.5rem', padding: 0 }}>← Back to levels</button>
       <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: '1.5rem' }}>
         <div style={{ width: 52, height: 52, background: '#F5F3FF', borderRadius: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 26 }}>📖</div>
         <div>
-          <h2 style={{ fontFamily: "'Playfair Display',serif", fontSize: 22, fontWeight: 700, color: '#1A1208', margin: 0 }}>Paragraph Practice — {lang?.name}</h2>
-          <p style={{ fontSize: 13, color: '#7A6552', margin: '2px 0 0' }}>Read Hindi, translate to {lang?.name}</p>
+          <h2 style={{ fontFamily: "'Playfair Display',serif", fontSize: 22, fontWeight: 700, color: 'var(--bl-text, #1A1208)', margin: 0 }}>Paragraph Practice — {lang?.name}</h2>
+          <p style={{ fontSize: 13, color: 'var(--bl-muted, #7A6552)', margin: '2px 0 0' }}>Read Hindi, translate to {lang?.name}</p>
         </div>
       </div>
 
@@ -146,8 +146,8 @@ function ParagraphMode({ lang, onBack }) {
       {paragraph && (
         <>
           <div className="bl-card" style={{ padding: '20px', marginBottom: '1rem' }}>
-            <div style={{ fontSize: 11, fontWeight: 700, color: '#7A6552', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 12 }}>Hindi Paragraph — Translate this</div>
-            <p style={{ fontFamily: "'Noto Sans Devanagari',sans-serif", fontSize: 18, color: '#1A1208', lineHeight: 1.8, margin: 0 }}>{paragraph}</p>
+            <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--bl-muted, #7A6552)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 12 }}>Hindi Paragraph — Translate this</div>
+            <p style={{ fontFamily: "'Noto Sans Devanagari',sans-serif", fontSize: 18, color: 'var(--bl-text, #1A1208)', lineHeight: 1.8, margin: 0 }}>{paragraph}</p>
           </div>
           <div className="bl-card-dark" style={{ padding: '20px', marginBottom: '1rem' }}>
             <div style={{ fontSize: 11, color: 'rgba(250,246,240,0.4)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 10 }}>Your {lang?.name} translation</div>
@@ -166,7 +166,7 @@ function ParagraphMode({ lang, onBack }) {
           )}
           {translation && (
             <details style={{ marginTop: '0.5rem' }}>
-              <summary style={{ cursor: 'pointer', fontSize: 13, color: '#7A6552', padding: '8px 0' }}>Show correct translation 👁️</summary>
+              <summary style={{ cursor: 'pointer', fontSize: 13, color: 'var(--bl-muted, #7A6552)', padding: '8px 0' }}>Show correct translation 👁️</summary>
               <div style={{ background: '#F5F3FF', border: '1px solid rgba(124,58,237,0.2)', borderRadius: 12, padding: '14px 16px', marginTop: 8, fontSize: 14, color: '#7C3AED', lineHeight: 1.7 }}>{translation}</div>
             </details>
           )}
@@ -228,7 +228,7 @@ function SentenceMode({ lesson, lang, onBack, onComplete }) {
   if (loading) return (
     <div style={{ textAlign: 'center', padding: '4rem 0' }}>
       <div style={{ fontSize: 40, marginBottom: 12 }}>💬</div>
-      <div style={{ fontFamily: "'Playfair Display',serif", fontSize: 20, color: '#1A1208' }}>Building sentences...</div>
+      <div style={{ fontFamily: "'Playfair Display',serif", fontSize: 20, color: 'var(--bl-text, #1A1208)' }}>Building sentences...</div>
       <div className="bl-shimmer" style={{ width: 180, height: 8, margin: '16px auto 0' }} />
     </div>
   );
@@ -243,8 +243,8 @@ function SentenceMode({ lesson, lang, onBack, onComplete }) {
   if (done) return (
     <div style={{ textAlign: 'center', maxWidth: 400, margin: '0 auto' }} className="fade-up">
       <div style={{ fontSize: 64, marginBottom: 12 }}>{score >= 4 ? '🏆' : '💪'}</div>
-      <h2 style={{ fontFamily: "'Playfair Display',serif", fontSize: 28, color: '#1A1208', marginBottom: 8 }}>{score >= 4 ? 'Bahut Badhiya!' : 'Keep Going!'}</h2>
-      <p style={{ color: '#7A6552', marginBottom: '1.75rem' }}>You got <strong>{score}</strong> out of <strong>{sentences.length}</strong> right!</p>
+      <h2 style={{ fontFamily: "'Playfair Display',serif", fontSize: 28, color: 'var(--bl-text, #1A1208)', marginBottom: 8 }}>{score >= 4 ? 'Bahut Badhiya!' : 'Keep Going!'}</h2>
+      <p style={{ color: 'var(--bl-muted, #7A6552)', marginBottom: '1.75rem' }}>You got <strong>{score}</strong> out of <strong>{sentences.length}</strong> right!</p>
       <div style={{ display: 'flex', gap: 10, justifyContent: 'center' }}>
         <button onClick={() => { setStep(0); setScore(0); setSelected(null); setDone(false); generateSentences(); }}
           style={{ background: '#E8611A', color: '#FAF6F0', border: 'none', borderRadius: 12, padding: '12px 22px', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>Try again</button>
@@ -257,9 +257,9 @@ function SentenceMode({ lesson, lang, onBack, onComplete }) {
   const s = sentences[step];
   return (
     <div style={{ maxWidth: 520 }} className="fade-up">
-      <button onClick={onBack} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#7A6552', fontSize: 14, marginBottom: '1.5rem', padding: 0 }}>← Back</button>
+      <button onClick={onBack} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--bl-muted, #7A6552)', fontSize: 14, marginBottom: '1.5rem', padding: 0 }}>← Back</button>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-        <span style={{ fontSize: 13, color: '#7A6552' }}>Sentence <strong style={{ color: '#1A1208' }}>{step + 1}</strong> of {sentences.length}</span>
+        <span style={{ fontSize: 13, color: 'var(--bl-muted, #7A6552)' }}>Sentence <strong style={{ color: 'var(--bl-text, #1A1208)' }}>{step + 1}</strong> of {sentences.length}</span>
         <span className="bl-score-badge">Score: {score}</span>
       </div>
       <div style={{ height: 8, background: 'rgba(26,18,8,0.08)', borderRadius: 99, marginBottom: '1.5rem', overflow: 'hidden' }}>
@@ -351,7 +351,7 @@ function WordQuiz({ lesson, lang, onBack, onComplete }) {
   if (loading) return (
     <div style={{ textAlign: 'center', padding: '4rem 0' }}>
       <div style={{ fontSize: 40, marginBottom: 12 }}>⚡</div>
-      <div style={{ fontFamily: "'Playfair Display',serif", fontSize: 20, color: '#1A1208' }}>Generating quiz...</div>
+      <div style={{ fontFamily: "'Playfair Display',serif", fontSize: 20, color: 'var(--bl-text, #1A1208)' }}>Generating quiz...</div>
       <div className="bl-shimmer" style={{ width: 160, height: 8, margin: '16px auto 0' }} />
     </div>
   );
@@ -366,8 +366,8 @@ function WordQuiz({ lesson, lang, onBack, onComplete }) {
   if (done) return (
     <div style={{ textAlign: 'center', maxWidth: 400, margin: '0 auto' }} className="fade-up">
       <div style={{ fontSize: 64, marginBottom: 12 }}>{score >= 4 ? '🏆' : '💪'}</div>
-      <h2 style={{ fontFamily: "'Playfair Display',serif", fontSize: 28, color: '#1A1208', marginBottom: 8 }}>{score >= 4 ? 'Bahut Badhiya!' : 'Keep Practicing!'}</h2>
-      <p style={{ color: '#7A6552', marginBottom: '1.75rem' }}>You scored <strong>{score}</strong> out of <strong>{quiz.length}</strong>!</p>
+      <h2 style={{ fontFamily: "'Playfair Display',serif", fontSize: 28, color: 'var(--bl-text, #1A1208)', marginBottom: 8 }}>{score >= 4 ? 'Bahut Badhiya!' : 'Keep Practicing!'}</h2>
+      <p style={{ color: 'var(--bl-muted, #7A6552)', marginBottom: '1.75rem' }}>You scored <strong>{score}</strong> out of <strong>{quiz.length}</strong>!</p>
       <div style={{ display: 'flex', gap: 10, justifyContent: 'center' }}>
         <button onClick={() => { setQIndex(0); setScore(0); setSelected(null); setDone(false); loadQuiz(); }}
           style={{ background: '#0D6E6E', color: '#FAF6F0', border: 'none', borderRadius: 12, padding: '12px 22px', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>Retry</button>
@@ -380,9 +380,9 @@ function WordQuiz({ lesson, lang, onBack, onComplete }) {
   const q = quiz[qIndex];
   return (
     <div style={{ maxWidth: 520 }} className="fade-up">
-      <button onClick={onBack} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#7A6552', fontSize: 14, marginBottom: '1.5rem', padding: 0 }}>← Back</button>
+      <button onClick={onBack} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--bl-muted, #7A6552)', fontSize: 14, marginBottom: '1.5rem', padding: 0 }}>← Back</button>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-        <span style={{ fontSize: 13, color: '#7A6552' }}>Question <strong style={{ color: '#1A1208' }}>{qIndex + 1}</strong> of {quiz.length}</span>
+        <span style={{ fontSize: 13, color: 'var(--bl-muted, #7A6552)' }}>Question <strong style={{ color: 'var(--bl-text, #1A1208)' }}>{qIndex + 1}</strong> of {quiz.length}</span>
         <span className="bl-score-badge" style={{ background: '#E0F2F2', color: '#0D6E6E', border: '1.5px solid rgba(13,110,110,0.25)' }}>Score: {score}</span>
       </div>
       <div style={{ height: 8, background: 'rgba(26,18,8,0.08)', borderRadius: 99, marginBottom: '1.5rem', overflow: 'hidden' }}>
@@ -457,7 +457,7 @@ function LessonDetail({ lesson, lang, onBack, onStartQuiz, onStartSentences }) {
 
   return (
     <div className="fade-up">
-      <button onClick={onBack} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#7A6552', fontSize: 14, marginBottom: '1.5rem', padding: 0, display: 'flex', alignItems: 'center', gap: 6 }}>
+      <button onClick={onBack} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--bl-muted, #7A6552)', fontSize: 14, marginBottom: '1.5rem', padding: 0, display: 'flex', alignItems: 'center', gap: 6 }}>
         ← Back to lessons
       </button>
 
@@ -467,8 +467,8 @@ function LessonDetail({ lesson, lang, onBack, onStartQuiz, onStartSentences }) {
           {lesson.icon}
         </div>
         <div style={{ flex: 1 }}>
-          <h2 style={{ fontFamily: "'Playfair Display',serif", fontSize: 22, fontWeight: 700, color: '#1A1208', margin: 0 }}>{lesson.title} — {lang?.name}</h2>
-          <p style={{ fontSize: 13, color: '#7A6552', margin: '3px 0 0' }}>{lesson.words.length} words · tap to expand · 🔊 to hear</p>
+          <h2 style={{ fontFamily: "'Playfair Display',serif", fontSize: 22, fontWeight: 700, color: 'var(--bl-text, #1A1208)', margin: 0 }}>{lesson.title} — {lang?.name}</h2>
+          <p style={{ fontSize: 13, color: 'var(--bl-muted, #7A6552)', margin: '3px 0 0' }}>{lesson.words.length} words · tap to expand · 🔊 to hear</p>
         </div>
       </div>
 
@@ -603,8 +603,8 @@ export default function Lessons() {
       {/* XP progress */}
       <div className="fade-up-2 bl-card" style={{ padding: '16px 18px', marginBottom: '1.5rem' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10 }}>
-          <span style={{ fontSize: 13, fontWeight: 700, color: '#1A1208' }}>Your Progress — {currentLang?.name}</span>
-          <span style={{ fontSize: 12, color: '#7A6552' }}>{xp} / 10 XP</span>
+          <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--bl-text, #1A1208)' }}>Your Progress — {currentLang?.name}</span>
+          <span style={{ fontSize: 12, color: 'var(--bl-muted, #7A6552)' }}>{xp} / 10 XP</span>
         </div>
         <div className="bl-xp-track" style={{ height: 10 }}>
           <div className="bl-xp-fill" style={{ width: `${(xp / 10) * 100}%` }} />
@@ -626,7 +626,7 @@ export default function Lessons() {
               style={{ padding: '16px 10px', borderRadius: 16, border: active ? `2px solid ${level.color}` : '1.5px solid rgba(26,18,8,0.08)', background: locked ? '#F5F0EB' : active ? level.bg : '#fff', cursor: locked ? 'not-allowed' : 'pointer', transition: 'all 0.15s', textAlign: 'center', opacity: locked ? 0.55 : 1, boxShadow: active ? `0 4px 16px ${level.color}22` : 'none' }}>
               <div style={{ fontSize: 26, marginBottom: 6 }}>{locked ? '🔒' : level.icon}</div>
               <div style={{ fontSize: 13, fontWeight: 700, color: locked ? '#7A6552' : level.color }}>{level.name}</div>
-              <div style={{ fontSize: 11, color: '#7A6552', marginTop: 3 }}>{locked ? `${level.xpNeeded} XP to unlock` : level.desc}</div>
+              <div style={{ fontSize: 11, color: 'var(--bl-muted, #7A6552)', marginTop: 3 }}>{locked ? `${level.xpNeeded} XP to unlock` : level.desc}</div>
             </button>
           );
         })}
@@ -636,8 +636,8 @@ export default function Lessons() {
       {activeLevel === 3 && unlockedLevel >= 3 && (
         <div className="fade-up" style={{ background: 'linear-gradient(135deg, #F5F3FF, #EDE9FF)', border: '2px solid rgba(124,58,237,0.2)', borderRadius: 18, padding: '24px', marginBottom: '1.5rem', textAlign: 'center' }}>
           <div style={{ fontSize: 42, marginBottom: 10 }}>📖</div>
-          <h3 style={{ fontFamily: "'Playfair Display',serif", fontSize: 20, color: '#1A1208', marginBottom: 6 }}>Paragraph Practice</h3>
-          <p style={{ fontSize: 13, color: '#7A6552', marginBottom: '1.25rem' }}>AI generates a Hindi paragraph. You translate to {currentLang?.name}!</p>
+          <h3 style={{ fontFamily: "'Playfair Display',serif", fontSize: 20, color: 'var(--bl-text, #1A1208)', marginBottom: 6 }}>Paragraph Practice</h3>
+          <p style={{ fontSize: 13, color: 'var(--bl-muted, #7A6552)', marginBottom: '1.25rem' }}>AI generates a Hindi paragraph. You translate to {currentLang?.name}!</p>
           <button onClick={() => setMode('paragraphs')} style={{ background: '#7C3AED', color: '#FAF6F0', border: 'none', borderRadius: 14, padding: '13px 30px', fontSize: 15, fontWeight: 700, cursor: 'pointer', boxShadow: '0 4px 16px rgba(124,58,237,0.3)' }}>
             Start Paragraph Practice →
           </button>
@@ -671,8 +671,8 @@ export default function Lessons() {
                 {lesson.icon}
               </div>
               <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 15, fontWeight: 600, color: '#1A1208', marginBottom: 3 }}>{lesson.title}</div>
-                <div style={{ fontSize: 12, color: '#7A6552' }}>{lesson.words.slice(0, 3).map(w => w.roman).join(', ')}...</div>
+                <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--bl-text, #1A1208)', marginBottom: 3 }}>{lesson.title}</div>
+                <div style={{ fontSize: 12, color: 'var(--bl-muted, #7A6552)' }}>{lesson.words.slice(0, 3).map(w => w.roman).join(', ')}...</div>
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 5, alignItems: 'flex-end', flexShrink: 0 }}>
                 <span style={{ fontSize: 11, fontWeight: 600, background: '#E0F2F2', color: '#0D6E6E', padding: '3px 9px', borderRadius: 99 }}>🔤 Words</span>
