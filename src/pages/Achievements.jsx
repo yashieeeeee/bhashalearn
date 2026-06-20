@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { soundBadge, soundStreak } from '../utils/sounds';
+import { soundBadge } from '../utils/sounds';
 import { supabase } from '../utils/supabase';
 
 // ─── Badge definitions ────────────────────────────────────────────────────────
