@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { soundCorrect, soundWrong, soundComplete, soundLevelUp, soundTap } from '../utils/sounds';
 import { LESSONS_DATA } from '../data/content';
 import { useAuth } from '../context/AuthContext';
 import { saveQuizScore, getQuizScores, supabase } from '../utils/supabase';
@@ -247,8 +248,10 @@ export default function Quiz() {
     if (selected !== null || !questions) return;
     setSelected(i); setS('selected', i);
     if (questions[qIndex].correct === i) {
+      soundCorrect();
       setScore(s => { const n = s + 1; setS('score', n); return n; });
     } else {
+      soundWrong();
       setLives(l => Math.max(0, l - 1));
     }
   }
@@ -258,10 +261,15 @@ export default function Quiz() {
     const nextIdx = qIndex + 1;
     if (nextIdx >= questions.length || lives === 0) {
       setDone(true); setS('done', true);
+      soundComplete();
       if (user && !saved) {
         await saveQuizScore(user.id, score, questions.length, selectedLang);
+        const newXp = (profile?.total_xp || 0) + score;
+        const oldLevel = Math.floor((profile?.total_xp || 0) / 20);
+        const newLevel = Math.floor(newXp / 20);
+        if (newLevel > oldLevel) soundLevelUp();
         await supabase.from('profiles').update({
-          total_xp: (profile?.total_xp || 0) + score,
+          total_xp: newXp,
           perfect_quizzes: score === questions.length ? (profile?.perfect_quizzes || 0) + 1 : (profile?.perfect_quizzes || 0),
         }).eq('id', user.id);
         setSaved(true); setS('saved', true);
@@ -273,10 +281,12 @@ export default function Quiz() {
   }
 
   function handleCorrect() {
+    soundCorrect();
     setScore(s => { const n = s + 1; setS('score', n); return n; });
     const nextIdx = qIndex + 1;
     if (nextIdx >= questions.length) {
       setDone(true); setS('done', true);
+      soundComplete();
       if (user && !saved) {
         saveQuizScore(user.id, score + 1, questions.length, selectedLang);
         supabase.from('profiles').update({ total_xp: (profile?.total_xp || 0) + score + 1 }).eq('id', user.id);
@@ -286,6 +296,7 @@ export default function Quiz() {
   }
 
   function handleWrong() {
+    soundWrong();
     setLives(l => {
       const nl = Math.max(0, l - 1);
       if (nl === 0) { setDone(true); setS('done', true); }
@@ -350,7 +361,7 @@ export default function Quiz() {
           { mode: 'jumble',   icon: '🔤', label: 'Word Jumble',     desc: 'Tap letters to spell it',   color: '#0D6E6E', bg: '#E0F2F2', border: 'rgba(13,110,110,0.2)' },
           { mode: 'sentence', icon: '💬', label: 'Sentence Build',  desc: 'Arrange words in order',    color: '#7C3AED', bg: '#F5F3FF', border: 'rgba(124,58,237,0.2)' },
         ].map(m => (
-          <div key={m.mode} onClick={() => setQuizMode(quizMode === m.mode ? null : m.mode)}
+          <div key={m.mode} onClick={() => { soundTap(); setQuizMode(quizMode === m.mode ? null : m.mode); }}
             style={{ padding: '18px 14px', borderRadius: 16, background: quizMode === m.mode ? m.bg : '#fff', border: `2px solid ${quizMode === m.mode ? m.color : 'rgba(26,18,8,0.08)'}`, cursor: 'pointer', textAlign: 'center', transition: 'all 0.15s', boxShadow: quizMode === m.mode ? `0 4px 16px ${m.border}` : 'none' }}>
             <div style={{ fontSize: 28, marginBottom: 8 }}>{m.icon}</div>
             <div style={{ fontSize: 13, fontWeight: 700, color: quizMode === m.mode ? m.color : '#1A1208', marginBottom: 4 }}>{m.label}</div>

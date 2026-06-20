@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { soundBadge, soundStreak } from '../utils/sounds';
 import { supabase } from '../utils/supabase';
 
 // ─── Badge definitions ────────────────────────────────────────────────────────
@@ -167,6 +168,7 @@ export default function Achievements() {
     }
 
     if (justEarned.length > 0) {
+      soundBadge();
       setNewBadges(justEarned);
       setShowConfetti(true);
       setTimeout(() => setShowConfetti(false), 3000);
