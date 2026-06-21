@@ -91,6 +91,12 @@ export default function Home() {
   const name        = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Learner';
   const firstName   = name.charAt(0).toUpperCase() + name.slice(1);
   const streak      = profile?.streak        || 0;
+  const today       = new Date().toISOString().split('T')[0];
+  const lastActive  = profile?.last_active;
+  const doneToday   = lastActive === today;
+  // Show streak as "at risk" if not done today yet
+  const displayStreak = doneToday ? streak : streak; // number stays same
+  const streakAtRisk  = !doneToday && streak > 0;    // but we flag it
   const totalXp     = profile?.total_xp      || 0;
   const wordsLearned = profile?.words_learned || 0;
   const level       = Math.floor(totalXp / 20) + 1;
@@ -140,7 +146,7 @@ export default function Home() {
             </div>
             <div style={{ display: 'flex', gap: 8 }}>
               <div style={{ background: 'rgba(232,97,26,0.2)', border: '1px solid rgba(232,97,26,0.3)', borderRadius: 99, padding: '5px 12px', fontSize: 12, fontWeight: 600, color: '#F5C49A', display: 'flex', alignItems: 'center', gap: 5 }}>
-                🔥 {streak}
+                🔥 {streak}{streakAtRisk ? ' ⚠️' : ''}
               </div>
               <div style={{ background: 'rgba(200,145,42,0.2)', border: '1px solid rgba(200,145,42,0.3)', borderRadius: 99, padding: '5px 12px', fontSize: 12, fontWeight: 600, color: '#E8C76A', display: 'flex', alignItems: 'center', gap: 5 }}>
                 ⚡ {totalXp} XP
@@ -174,7 +180,7 @@ export default function Home() {
       <div className="fade-up-2" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 10, marginBottom: 20 }}>
         {[
           { num: wordsLearned, label: 'Words', icon: '📚', color: '#E8611A', bg: dark ? 'rgba(232,97,26,0.12)' : '#FDF0E8', border: 'rgba(232,97,26,0.2)' },
-          { num: streak,       label: 'Streak', icon: '🔥', color: '#0D6E6E', bg: dark ? 'rgba(13,110,110,0.12)' : '#E0F2F2', border: 'rgba(13,110,110,0.2)' },
+          { num: streak, label: streakAtRisk ? 'At Risk!' : 'Streak', icon: streakAtRisk ? '⚠️' : '🔥', color: streakAtRisk ? '#DC2626' : '#0D6E6E', bg: dark ? (streakAtRisk ? 'rgba(220,38,38,0.12)' : 'rgba(13,110,110,0.12)') : (streakAtRisk ? '#FEE2E2' : '#E0F2F2'), border: streakAtRisk ? 'rgba(220,38,38,0.2)' : 'rgba(13,110,110,0.2)' },
           { num: `Lv.${level}`,label: 'Level',  icon: '⭐', color: '#C8912A', bg: dark ? 'rgba(200,145,42,0.12)' : '#FBF3E2', border: 'rgba(200,145,42,0.2)' },
         ].map(s => (
           <div key={s.label} style={{ background: s.bg, border: `1px solid ${s.border}`, borderRadius: 14, padding: '14px 12px', textAlign: 'center' }}>

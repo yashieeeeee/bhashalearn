@@ -12,7 +12,7 @@ const navItems = [
   { to: '/daily',         icon: '🔥', label: 'Daily'         },
   { to: '/flashcards',    icon: '🃏', label: 'Flashcards'    },
   { to: '/pronunciation', icon: '🎙️', label: 'Pronunciation' },
-  { to: '/path', icon: '🗺️', label: 'Learning Path' },
+  { to: '/learning-path', icon: '🗺️', label: 'Learning Path' },
   { to: '/achievements',  icon: '🏆', label: 'Achievements'  },
   { to: '/analytics',     icon: '📊', label: 'Analytics'     },
   { to: '/bookmarks',     icon: '🔖', label: 'Bookmarks'     },
@@ -22,7 +22,6 @@ const mobileNavItems = [
   { to: '/',           icon: '🏠', label: 'Home'    },
   { to: '/lessons',    icon: '📚', label: 'Lessons' },
   { to: '/quiz',       icon: '⚡', label: 'Quiz'    },
-  { to: '/path', icon: '🗺️', label: 'Learning Path' },
   { to: '/daily',      icon: '🔥', label: 'Daily'   },
   { to: '/achievements', icon: '🏆', label: 'Wins'  },
 ];
@@ -32,11 +31,13 @@ export default function Sidebar({ children }) {
   const { dark, toggle }  = useTheme();
   const [menuOpen, setMenuOpen] = useState(false);
 
-  const name     = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Learner';
-  const initials = name.slice(0, 2).toUpperCase();
-  const totalXp  = profile?.total_xp || 0;
-  const level    = Math.floor(totalXp / 20) + 1;
+  const name      = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Learner';
+  const initials  = name.slice(0, 2).toUpperCase();
+  const totalXp   = profile?.total_xp || 0;
+  const level     = Math.floor(totalXp / 20) + 1;
   const xpInLevel = totalXp % 20;
+  const today     = new Date().toISOString().split('T')[0];
+  const streakAtRisk = profile?.streak > 0 && profile?.last_active !== today;
 
   return (
     <>
