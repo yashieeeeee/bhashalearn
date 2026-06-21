@@ -4,6 +4,85 @@ import { useTheme } from '../context/ThemeContext';
 
 const WEEK_DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
+// ── Streak Banner ─────────────────────────────────────────────────────────────
+function StreakBanner({ streak, lastActive, firstName, onAction, dark }) {
+  const today     = new Date().toISOString().split('T')[0];
+  const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+  const doneToday = lastActive === today;
+  const hour      = new Date().getHours();
+
+  // Don't show if streak is 0 and never done anything
+  if (streak === 0 && !lastActive) return null;
+
+  let config;
+
+  if (doneToday) {
+    // Already active today — celebrate!
+    config = {
+      emoji: '🔥',
+      bg: 'linear-gradient(135deg, #E8611A, #C8912A)',
+      border: 'rgba(232,97,26,0.3)',
+      title: `${streak} day streak! You're on fire!`,
+      sub: 'Amazing work today. Come back tomorrow to keep it going!',
+      btn: null,
+    };
+  } else if (lastActive === yesterday || streak === 0) {
+    // Streak at risk or just starting — urgent nudge
+    const timeLeft = 23 - hour;
+    const urgent   = timeLeft <= 4;
+    config = {
+      emoji: urgent ? '⚠️' : '🔥',
+      bg: urgent
+        ? 'linear-gradient(135deg, #DC2626, #991B1B)'
+        : 'linear-gradient(135deg, #1A1208, #2A1E0E)',
+      border: urgent ? 'rgba(220,38,38,0.4)' : 'rgba(232,97,26,0.25)',
+      title: streak > 0
+        ? urgent
+          ? `Hurry! Your ${streak} day streak ends in ~${timeLeft}h!`
+          : `Don't break your ${streak} day streak!`
+        : `Hey ${firstName}, start your streak today! 🌟`,
+      sub: streak > 0
+        ? urgent
+          ? 'Quick — do one lesson or quiz before midnight!'
+          : 'Complete a lesson or quiz to keep your streak alive.',
+        : 'Do one lesson or quiz daily and build an unstoppable habit!',
+      btn: streak > 0
+        ? urgent ? '🚀 Do it now!' : '📚 Start a lesson'
+        : '⚡ Take a quiz',
+      btnColor: urgent ? '#DC2626' : '#E8611A',
+    };
+  } else {
+    // Missed yesterday — streak already reset, encourage restart
+    config = {
+      emoji: '💪',
+      bg: 'linear-gradient(135deg, #1A1208, #2A1E0E)',
+      border: 'rgba(232,97,26,0.2)',
+      title: `Start a new streak today, ${firstName}!`,
+      sub: "Yesterday's gone — today is a fresh start. You've got this!",
+      btn: '🔥 Restart streak',
+      btnColor: '#E8611A',
+    };
+  }
+
+  return (
+    <div style={{ background: config.bg, borderRadius: 16, padding: '16px 18px', marginBottom: 16, border: `1px solid ${config.border}`, position: 'relative', overflow: 'hidden' }}>
+      <div style={{ position: 'absolute', top: -20, right: -20, fontSize: 80, opacity: 0.08, pointerEvents: 'none' }}>🔥</div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        <div style={{ fontSize: 32, flexShrink: 0 }}>{config.emoji}</div>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontSize: 14, fontWeight: 700, color: '#FAF6F0', marginBottom: 3 }}>{config.title}</div>
+          <div style={{ fontSize: 12, color: 'rgba(250,246,240,0.6)', lineHeight: 1.5 }}>{config.sub}</div>
+        </div>
+        {config.btn && (
+          <button onClick={onAction} style={{ background: config.btnColor, color: '#FAF6F0', border: 'none', borderRadius: 10, padding: '9px 14px', fontSize: 13, fontWeight: 700, cursor: 'pointer', flexShrink: 0, whiteSpace: 'nowrap', boxShadow: `0 4px 12px ${config.btnColor}44` }}>
+            {config.btn}
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export default function Home() {
   const { user, profile } = useAuth();
   const { dark } = useTheme();
@@ -81,6 +160,15 @@ export default function Home() {
           </div>
         </div>
       </div>
+
+      {/* ── Streak Banner ── */}
+      <StreakBanner
+        streak={streak}
+        lastActive={profile?.last_active}
+        firstName={firstName}
+        dark={dark}
+        onAction={() => navigate('/lessons')}
+      />
 
       {/* ── Stats row ── */}
       <div className="fade-up-2" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 10, marginBottom: 20 }}>
