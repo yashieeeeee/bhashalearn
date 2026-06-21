@@ -81,7 +81,7 @@ function LessonQuiz({ words, langCode, lessonId, onComplete, onBack }) {
 
   function next() {
     if (!questions) return;
-    if (qIndex + 1 >= questions.length || lives <= (selected !== questions[qIndex].correct ? 1 : 0) && lives === 1) {
+    if ((qIndex + 1 >= questions.length) || (lives <= (selected !== questions[qIndex].correct ? 1 : 0) && lives === 1)) {
       const finalScore = score + (selected === questions[qIndex]?.correct ? 1 : 0);
       soundComplete();
       setDone(true);
