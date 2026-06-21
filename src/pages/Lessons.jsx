@@ -367,11 +367,12 @@ export default function Lessons() {
     const bestStars = Math.max(stars, existing?.stars || 0);
     const completed = stars >= 2; // need 60%+ to unlock next
 
-    const newProgress = {
+    const newLangProgress = {
       ...progress,
       [activeLesson.id]: { stars: bestStars, xp: xpEarned, completed: completed || existing?.completed },
     };
-    setProgress(newProgress);
+    const newAllProgress = { ...allProgress, [selectedLang]: newLangProgress };
+    setAllProgress(newAllProgress);
     setQuizResult({ score, total, stars, xpEarned });
     setView('result');
 
@@ -382,7 +383,7 @@ export default function Lessons() {
       if (newLevel > oldLevel) soundLevelUp();
 
       await supabase.from('profiles').update({
-        lesson_progress: newProgress,
+        lesson_progress: newAllProgress,
         total_xp: newTotalXp,
         lessons_completed: (profile?.lessons_completed || 0) + 1,
       }).eq('id', user.id);
@@ -454,6 +455,7 @@ export default function Lessons() {
   const totalLessons    = LESSON_ORDER.length;
   const completedCount  = Object.values(progress).filter(p => p?.completed).length;
   const totalXp         = Object.values(progress).reduce((sum, p) => sum + (p?.xp || 0), 0);
+  // ^ progress is already scoped to selectedLang so stats are per-language
 
   return (
     <div style={{ maxWidth: 600, paddingBottom: '3rem' }}>
