@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
+import { soundCorrect, soundWrong, soundComplete, soundLevelUp, soundTap } from '../utils/sounds';
 import { LANGUAGES, LESSONS_DATA } from '../data/content';
 import { generateLesson, generateQuiz, chatWithTutor } from '../utils/claude';
 import { useAuth } from '../context/AuthContext';
-import { supabase } from '../utils/supabase';
+import { supabase, recordActivity } from '../utils/supabase';
+import StreakPopup from '../components/StreakPopup';
 
 // Same TTS logic as Pronunciation.jsx — speaks roman text as fallback if no voice found
 const LANG_CONFIG = {
@@ -217,11 +219,12 @@ function SentenceMode({ lesson, lang, onBack, onComplete }) {
   function pick(i) {
     if (selected !== null) return;
     setSelected(i);
-    if (sentences[step].correct === i) setScore(s => s + 1);
+    if (sentences[step].correct === i) { soundCorrect(); setScore(s => s + 1); }
+    else soundWrong();
   }
 
   function nextStep() {
-    if (step + 1 >= sentences.length) { setDone(true); onComplete && onComplete(score + (selected === sentences[step].correct ? 1 : 0)); return; }
+    if (step + 1 >= sentences.length) { setDone(true); soundComplete(); onComplete && onComplete(score + (selected === sentences[step].correct ? 1 : 0)); return; }
     setStep(s => s + 1); setSelected(null);
   }
 
@@ -340,11 +343,12 @@ function WordQuiz({ lesson, lang, onBack, onComplete }) {
   function pick(i) {
     if (selected !== null || !quiz) return;
     setSelected(i);
-    if (quiz[qIndex].correct === i) setScore(s => s + 1);
+    if (quiz[qIndex].correct === i) { soundCorrect(); setScore(s => s + 1); }
+    else soundWrong();
   }
 
   function nextQ() {
-    if (qIndex + 1 >= quiz.length) { setDone(true); onComplete && onComplete(score + (selected === quiz[qIndex].correct ? 1 : 0)); return; }
+    if (qIndex + 1 >= quiz.length) { setDone(true); soundComplete(); onComplete && onComplete(score + (selected === quiz[qIndex].correct ? 1 : 0)); return; }
     setQIndex(i => i + 1); setSelected(null);
   }
 
@@ -544,6 +548,7 @@ export default function Lessons() {
   const [customTopic, setCustomTopic]   = useState('');
   const [generating, setGenerating]     = useState(false);
   const [, setAiLesson]                 = useState(null);
+  const [streakData, setStreakData]       = useState(null);
   const [error, setError]               = useState('');
 
   const xp           = xpMap[selectedLang] || 0;
@@ -557,7 +562,12 @@ export default function Lessons() {
 
   async function handleComplete(score) {
     if (score >= 3 && user) {
-      const newXp  = Math.min((xpMap[selectedLang] || 0) + 2, 10);
+      const oldXp  = xpMap[selectedLang] || 0;
+      const newXp  = Math.min(oldXp + 2, 10);
+      if (newXp > oldXp) soundLevelUp();
+      // Record real activity and show streak popup if earned
+      const { newStreak, streakIncreased } = await recordActivity(user.id);
+      if (streakIncreased) setStreakData({ streak: newStreak });
       const newMap = { ...xpMap, [selectedLang]: newXp };
       setXpMap(newMap);
       await supabase.from('profiles').update({
@@ -586,6 +596,7 @@ export default function Lessons() {
 
   return (
     <div style={{ maxWidth: 720 }}>
+      {streakData && <StreakPopup streak={streakData.streak} onClose={() => setStreakData(null)} />}
       <div className="fade-up" style={{ marginBottom: '1.25rem' }}>
         <h1 className="bl-page-title">Lessons 📚</h1>
         <p className="bl-page-sub">Level up from words → sentences → full paragraphs!</p>
@@ -594,7 +605,7 @@ export default function Lessons() {
       {/* Language selector */}
       <div className="fade-up-2" style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: '1.5rem' }}>
         {LANGUAGES.map(lang => (
-          <button key={lang.code} onClick={() => changeLang(lang.code)} className={`bl-lang-pill ${selectedLang === lang.code ? 'active' : ''}`}>
+          <button key={lang.code} onClick={() => { soundTap(); changeLang(lang.code); }} className={`bl-lang-pill ${selectedLang === lang.code ? 'active' : ''}`}>
             {lang.flag} {lang.name} <span style={{ opacity: 0.55, fontSize: 11 }}>{lang.script}</span>
           </button>
         ))}

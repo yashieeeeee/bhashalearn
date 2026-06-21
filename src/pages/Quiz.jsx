@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { soundCorrect, soundWrong, soundComplete, soundLevelUp, soundTap } from '../utils/sounds';
 import { LESSONS_DATA } from '../data/content';
 import { useAuth } from '../context/AuthContext';
-import { saveQuizScore, getQuizScores, supabase } from '../utils/supabase';
+import { saveQuizScore, getQuizScores, supabase, recordActivity } from '../utils/supabase';
+import StreakPopup from '../components/StreakPopup';
 import { generateQuiz } from '../utils/claude';
 
 const LANGS = ['bhojpuri','tamil','telugu','marathi','bengali','gujarati','kannada','malayalam','punjabi','odia','urdu','assamese'];
@@ -216,6 +217,7 @@ export default function Quiz() {
   const [showHistory, setShowHistory]   = useState(false);
   const [quizMode, setQuizMode]         = useState(() => getS('mode', null));
   const [lives, setLives]               = useState(3);
+  const [streakData, setStreakData]       = useState(null); // { streak } when popup should show
 
   async function startQuiz(lang, mode) {
     if (loading) return;
@@ -268,6 +270,8 @@ export default function Quiz() {
         const oldLevel = Math.floor((profile?.total_xp || 0) / 20);
         const newLevel = Math.floor(newXp / 20);
         if (newLevel > oldLevel) soundLevelUp();
+        const { newStreak, streakIncreased } = await recordActivity(user.id);
+        if (streakIncreased) setStreakData({ streak: newStreak });
         await supabase.from('profiles').update({
           total_xp: newXp,
           perfect_quizzes: score === questions.length ? (profile?.perfect_quizzes || 0) + 1 : (profile?.perfect_quizzes || 0),
@@ -429,7 +433,8 @@ export default function Quiz() {
             </div>
           ))}
         </div>
-        <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
+        {streakData && <StreakPopup streak={streakData.streak} onClose={() => setStreakData(null)} />}
+      <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
           <button onClick={() => startQuiz(selectedLang, quizMode)} style={{ background: '#1A1208', color: '#FAF6F0', border: 'none', borderRadius: 12, padding: '13px 22px', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>Try Again 🔄</button>
           <button onClick={reset} style={{ background: '#FDF0E8', color: '#E8611A', border: '1.5px solid rgba(232,97,26,0.3)', borderRadius: 12, padding: '13px 22px', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>Change Mode</button>
           <button onClick={loadHistory} style={{ background: '#FBF3E2', color: '#C8912A', border: '1.5px solid rgba(200,145,42,0.3)', borderRadius: 12, padding: '13px 22px', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>History 📊</button>
@@ -438,11 +443,15 @@ export default function Quiz() {
     );
   }
 
+  // Render streak popup when earned
+  const streakPopupEl = streakData ? <StreakPopup streak={streakData.streak} onClose={() => { setStreakData(null); }} /> : null;
+
   const q        = questions[qIndex];
   const progress = (qIndex / questions.length) * 100;
 
   return (
     <div style={{ maxWidth: 580 }}>
+      {streakPopupEl}
       <div className="fade-up" style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: '1.25rem' }}>
         <button onClick={reset} style={{ background: 'rgba(26,18,8,0.06)', border: 'none', borderRadius: 8, width: 32, height: 32, cursor: 'pointer', fontSize: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--bl-muted, #7A6552)', flexShrink: 0 }}>✕</button>
         <div style={{ flex: 1, height: 8, background: 'rgba(26,18,8,0.08)', borderRadius: 99, overflow: 'hidden' }}>

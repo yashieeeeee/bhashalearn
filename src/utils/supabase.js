@@ -9,15 +9,11 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
     autoRefreshToken: true,
     detectSessionInUrl: false,
   },
-  realtime: {
-    params: { eventsPerSecond: 1 },
-  },
-  global: {
-    fetch: (...args) => fetch(...args),
-  },
+  realtime: { params: { eventsPerSecond: 1 } },
+  global: { fetch: (...args) => fetch(...args) },
 });
 
-// Auth helpers
+// ── Auth helpers ─────────────────────────────────────────────────────────────
 export async function signUp(email, password, name) {
   const { data, error } = await supabase.auth.signUp({
     email, password,
@@ -25,38 +21,31 @@ export async function signUp(email, password, name) {
   });
   return { data, error };
 }
-
 export async function signIn(email, password) {
   const { data, error } = await supabase.auth.signInWithPassword({ email, password });
   return { data, error };
 }
-
-export async function signOut() {
-  await supabase.auth.signOut();
-}
-
+export async function signOut() { await supabase.auth.signOut(); }
 export async function getUser() {
   const { data: { user } } = await supabase.auth.getUser();
   return user;
 }
 
-// Profile helpers
+// ── Profile helpers ───────────────────────────────────────────────────────────
 export async function getProfile(userId) {
   const { data } = await supabase.from('profiles').select('*').eq('id', userId).single();
   return data;
 }
-
 export async function upsertProfile(userId, updates) {
   const { data, error } = await supabase.from('profiles').upsert({ id: userId, ...updates });
   return { data, error };
 }
 
-// Progress helpers
+// ── Progress helpers ──────────────────────────────────────────────────────────
 export async function getLessonProgress(userId) {
   const { data } = await supabase.from('progress').select('*').eq('user_id', userId);
   return data || [];
 }
-
 export async function saveLessonProgress(userId, lessonId, progress, completed) {
   const { data, error } = await supabase.from('progress').upsert({
     user_id: userId, lesson_id: lessonId,
@@ -66,13 +55,12 @@ export async function saveLessonProgress(userId, lessonId, progress, completed) 
   return { data, error };
 }
 
-// Quiz score helpers
+// ── Quiz score helpers ────────────────────────────────────────────────────────
 export async function saveQuizScore(userId, score, total, topic) {
   const { data, error } = await supabase.from('quiz_scores')
     .insert({ user_id: userId, score, total, topic });
   return { data, error };
 }
-
 export async function getQuizScores(userId) {
   const { data } = await supabase.from('quiz_scores')
     .select('*').eq('user_id', userId)
@@ -80,20 +68,38 @@ export async function getQuizScores(userId) {
   return data || [];
 }
 
-// Streak helper
-export async function updateStreak(userId) {
+// ── Streak helper — NOW only called after real activity ───────────────────────
+// Returns { newStreak, streakIncreased } so callers can show popup
+export async function recordActivity(userId) {
   const profile = await getProfile(userId);
-  const today = new Date().toISOString().split('T')[0];
+  const today     = new Date().toISOString().split('T')[0];
+  const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+
   if (!profile) {
     await upsertProfile(userId, { streak: 1, last_active: today });
-    return 1;
+    return { newStreak: 1, streakIncreased: true };
   }
+
   const last = profile.last_active;
-  const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
-  let newStreak = profile.streak || 0;
-  if (last === today) return newStreak;
-  if (last === yesterday) newStreak += 1;
-  else newStreak = 1;
+
+  // Already recorded activity today — don't increment again
+  if (last === today) {
+    return { newStreak: profile.streak || 1, streakIncreased: false };
+  }
+
+  let newStreak;
+  if (last === yesterday) {
+    newStreak = (profile.streak || 0) + 1; // extend streak
+  } else {
+    newStreak = 1; // reset — missed a day
+  }
+
   await upsertProfile(userId, { streak: newStreak, last_active: today });
+  return { newStreak, streakIncreased: true };
+}
+
+// Keep old name as alias so nothing else breaks
+export async function updateStreak(userId) {
+  const { newStreak } = await recordActivity(userId);
   return newStreak;
 }
