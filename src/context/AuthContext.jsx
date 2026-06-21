@@ -1,60 +1,45 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import { createContext, useContext, useEffect, useState } from 'react';
 import { supabase, getProfile, upsertProfile } from '../utils/supabase';
 
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null);
+  const [user, setUser]       = useState(null);
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
-    async function loadProfile(userId) {
-      let p = await getProfile(userId);
-
-      if (!p) {
-        await upsertProfile(userId, {
-          streak: 0,
-          words_learned: 0,
-          last_active: null,
-        });
-
-        p = await getProfile(userId);
-      }
-
-      setProfile(p);
-      setLoading(false);
-    }
-
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
-
-      if (session?.user) {
-        loadProfile(session.user.id);
-      } else {
-        setLoading(false);
-      }
+      if (session?.user) loadProfile(session.user.id);
+      else setLoading(false);
     });
 
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION') return;
-
-      if (event === 'SIGNED_IN' && session?.user) {
-        setUser(session.user);
-        await loadProfile(session.user.id);
-      }
-
-      if (event === 'SIGNED_OUT') {
-        setUser(null);
-        setProfile(null);
-        setLoading(false);
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      // Only handle actual sign in / sign out — ignore token refreshes
+      if (_event === 'TOKEN_REFRESHED' || _event === 'INITIAL_SESSION') return;
+      if (_event === 'SIGNED_OUT') {
+        setUser(null); setProfile(null); setLoading(false);
       }
     });
 
     return () => subscription.unsubscribe();
   }, []);
+
+  async function loadProfile(userId) {
+    // Don't show loading spinner if profile already loaded (tab switch etc.)
+    if (!profile) setLoading(true);
+    let p = await getProfile(userId);
+    if (!p) {
+      await upsertProfile(userId, { streak: 0, words_learned: 0, last_active: null });
+      p = await getProfile(userId);
+    }
+    // ✅ NO updateStreak here — streak only updates after real activity
+    setProfile(p);
+    setLoading(false);
+  }
 
   async function refreshProfile() {
     if (user) {
@@ -64,14 +49,7 @@ export function AuthProvider({ children }) {
   }
 
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        profile,
-        loading,
-        refreshProfile,
-      }}
-    >
+    <AuthContext.Provider value={{ user, profile, loading, refreshProfile }}>
       {children}
     </AuthContext.Provider>
   );
