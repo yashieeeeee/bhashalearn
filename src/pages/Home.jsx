@@ -44,7 +44,7 @@ function StreakBanner({ streak, lastActive, firstName, onAction, dark }) {
       sub: streak > 0
         ? urgent
           ? 'Quick — do one lesson or quiz before midnight!'
-          : 'Complete a lesson or quiz to keep your streak alive.',
+          : 'Complete a lesson or quiz to keep your streak alive.'
         : 'Do one lesson or quiz daily and build an unstoppable habit!',
       btn: streak > 0
         ? urgent ? '🚀 Do it now!' : '📚 Start a lesson'
