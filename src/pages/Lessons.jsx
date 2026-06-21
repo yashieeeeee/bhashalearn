@@ -329,19 +329,22 @@ function LessonNode({ lesson, status, stars, xp, unitColor, onClick, index }) {
 export default function Lessons() {
   const { user, profile, refreshProfile } = useAuth();
   const [selectedLang, setSelectedLang]   = useState('bhojpuri');
-  const [progress, setProgress]           = useState({}); // { lessonId: { stars, xp, completed } }
+  const [allProgress, setAllProgress]     = useState({}); // { langCode: { lessonId: {...} } }
   const [activeLesson, setActiveLesson]   = useState(null);
-  const [view, setView]                   = useState('path'); // path | vocab | quiz | result
+  const [view, setView]                   = useState('path');
   const [quizResult, setQuizResult]       = useState(null);
   const [streakData, setStreakData]       = useState(null);
 
   const currentLang = LANGUAGES.find(l => l.code === selectedLang);
 
-  // Load progress from Supabase profile
+  // Load all progress from Supabase — keyed by language
   useEffect(() => {
     const saved = profile?.lesson_progress || {};
-    setProgress(saved);
-  }, [profile, selectedLang]);
+    setAllProgress(saved);
+  }, [profile]);
+
+  // Scope progress to current language
+  const progress = allProgress[selectedLang] || {};
 
   function getLessonStatus(lessonId) {
     const idx = LESSON_ORDER.indexOf(lessonId);
