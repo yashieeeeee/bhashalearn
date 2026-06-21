@@ -97,7 +97,7 @@ export default function Sidebar({ children }) {
           {/* Streak + Badges */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 10 }}>
             {[
-              [profile?.streak || 0, '🔥', 'Streak'],
+              [(profile?.streak || 0), streakAtRisk ? '⚠️' : '🔥', streakAtRisk ? 'At Risk!' : 'Streak'],
               [BADGES.filter(b => b.condition(profile)).length, '🏅', 'Badges'],
             ].map(([num, icon, label]) => (
               <div key={label} style={{ background: 'rgba(250,246,240,0.05)', border: '1px solid rgba(250,246,240,0.06)', borderRadius: 10, padding: '8px 10px', textAlign: 'center' }}>
