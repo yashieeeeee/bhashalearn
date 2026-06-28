@@ -1,4 +1,9 @@
 import { useState } from 'react';
+import { LESSONS_DATA } from '../data/content';
+import { useAuth } from '../context/AuthContext';
+import { saveQuizScore, getQuizScores, supabase, recordActivity } from '../utils/supabase';
+import StreakPopup from '../components/StreakPopup';
+import { generateQuiz } from '../utils/claude';
 import { soundCorrect, soundWrong, soundComplete, soundLevelUp, soundTap } from '../utils/sounds';
 
 // ── TTS for quiz options ──────────────────────────────────────────────────────
@@ -24,11 +29,6 @@ function speakOption(text, langCode) {
   if (window.speechSynthesis.getVoices().length > 0) trySpeak();
   else { window.speechSynthesis.onvoiceschanged = () => { window.speechSynthesis.onvoiceschanged = null; trySpeak(); }; }
 }
-import { LESSONS_DATA } from '../data/content';
-import { useAuth } from '../context/AuthContext';
-import { saveQuizScore, getQuizScores, supabase, recordActivity } from '../utils/supabase';
-import StreakPopup from '../components/StreakPopup';
-import { generateQuiz } from '../utils/claude';
 
 const LANGS = ['bhojpuri','tamil','telugu','marathi','bengali','gujarati','kannada','malayalam','punjabi','odia','urdu','assamese'];
 const LANG_EMOJI = { bhojpuri:'🌾', tamil:'🌴', telugu:'🌺', marathi:'🦁', bengali:'🎨', gujarati:'🪔', kannada:'🌿', malayalam:'🌊', punjabi:'🌻', odia:'🪷', urdu:'🌙', assamese:'🦋' };
