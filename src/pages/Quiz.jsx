@@ -17,36 +17,55 @@ const QUIZ_LANG_MAP = {
 };
 function speakOption(scriptText, romanText, langCode) {
   window.speechSynthesis.cancel();
-  const lang   = QUIZ_LANG_MAP[langCode] || 'hi-IN';
-  const voices = window.speechSynthesis.getVoices();
-  const hasVoice = voices.some(v => v.lang === lang || v.lang.startsWith(lang.split('-')[0]));
 
-  // If no voice available, fall back to roman in English
-  const textToSpeak = hasVoice ? scriptText : (romanText || scriptText);
-  const langToUse   = hasVoice ? lang : 'en-IN';
+  const voices   = window.speechSynthesis.getVoices();
+  const lang     = QUIZ_LANG_MAP[langCode] || 'hi-IN';
+  const hasVoice = voices.some(v =>
+    v.lang === lang || v.lang.startsWith(lang.split('-')[0])
+  );
 
-  const u = new SpeechSynthesisUtterance(textToSpeak);
-  u.lang  = langToUse;
-  u.rate  = 0.75;
+  // Strategy:
+  // 1. If browser has the exact language voice → speak script in that voice
+  // 2. Otherwise → speak roman text in en-US (guaranteed to exist on every browser)
+  const textToSpeak = (hasVoice && scriptText) ? scriptText : (romanText || scriptText);
+  const langToUse   = hasVoice ? lang : 'en-US';
 
-  u.onerror = () => {
-    const f = new SpeechSynthesisUtterance(romanText || scriptText);
-    f.lang = 'en-IN'; f.rate = 0.75;
-    window.speechSynthesis.speak(f);
-  };
+  const doSpeak = (voiceList) => {
+    const u    = new SpeechSynthesisUtterance(textToSpeak);
+    u.lang     = langToUse;
+    u.rate     = 0.78;
+    u.pitch    = 1;
+    u.volume   = 1;
 
-  const trySpeak = () => {
-    const v    = window.speechSynthesis.getVoices();
-    const best = v.find(x => x.lang === langToUse)
-               || v.find(x => x.lang.startsWith(langToUse.split('-')[0]))
-               || v.find(x => x.lang.includes('IN'))
-               || v[0];
+    // Pick best matching voice
+    const best = voiceList.find(v => v.lang === langToUse)
+              || voiceList.find(v => v.lang.startsWith(langToUse.split('-')[0]))
+              || voiceList.find(v => v.lang.startsWith('en'))
+              || voiceList[0];
     if (best) u.voice = best;
+
+    // If it fails, try plain en-US roman as absolute last resort
+    u.onerror = () => {
+      const f   = new SpeechSynthesisUtterance(romanText || scriptText);
+      f.lang    = 'en-US';
+      f.rate    = 0.78;
+      const eng = voiceList.find(v => v.lang.startsWith('en')) || voiceList[0];
+      if (eng) f.voice = eng;
+      window.speechSynthesis.speak(f);
+    };
+
     window.speechSynthesis.speak(u);
   };
 
-  if (window.speechSynthesis.getVoices().length > 0) trySpeak();
-  else { window.speechSynthesis.onvoiceschanged = () => { window.speechSynthesis.onvoiceschanged = null; trySpeak(); }; }
+  const v = window.speechSynthesis.getVoices();
+  if (v.length > 0) {
+    doSpeak(v);
+  } else {
+    window.speechSynthesis.onvoiceschanged = () => {
+      window.speechSynthesis.onvoiceschanged = null;
+      doSpeak(window.speechSynthesis.getVoices());
+    };
+  }
 }
 
 const LANGS = ['bhojpuri','tamil','telugu','marathi','bengali','gujarati','kannada','malayalam','punjabi','odia','urdu','assamese'];

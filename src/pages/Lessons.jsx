@@ -16,26 +16,38 @@ const LANG_CONFIG = {
 };
 function speak(scriptText, romanText, langCode) {
   window.speechSynthesis.cancel();
-  const lang = LANG_CONFIG[langCode] || 'hi-IN';
-  const voices = window.speechSynthesis.getVoices();
+  const lang     = LANG_CONFIG[langCode] || 'hi-IN';
+  const voices   = window.speechSynthesis.getVoices();
   const hasVoice = voices.some(v => v.lang === lang || v.lang.startsWith(lang.split('-')[0]));
-  const text = hasVoice ? scriptText : (romanText || scriptText);
-  const useLang = hasVoice ? lang : 'en-IN';
-  const u = new SpeechSynthesisUtterance(text);
-  u.lang = useLang; u.rate = 0.75;
-  u.onerror = () => {
-    const f = new SpeechSynthesisUtterance(romanText || scriptText);
-    f.lang = 'en-IN'; f.rate = 0.75;
-    window.speechSynthesis.speak(f);
-  };
-  const trySpeak = () => {
-    const v = window.speechSynthesis.getVoices();
-    const best = v.find(x => x.lang === useLang) || v.find(x => x.lang.startsWith(useLang.split('-')[0])) || v[0];
+
+  // Fall back to roman in en-US — guaranteed on every browser
+  const textToSpeak = (hasVoice && scriptText) ? scriptText : (romanText || scriptText);
+  const langToUse   = hasVoice ? lang : 'en-US';
+
+  const doSpeak = (voiceList) => {
+    const u  = new SpeechSynthesisUtterance(textToSpeak);
+    u.lang   = langToUse;
+    u.rate   = 0.78;
+    u.pitch  = 1;
+    u.volume = 1;
+    const best = voiceList.find(v => v.lang === langToUse)
+              || voiceList.find(v => v.lang.startsWith(langToUse.split('-')[0]))
+              || voiceList.find(v => v.lang.startsWith('en'))
+              || voiceList[0];
     if (best) u.voice = best;
+    u.onerror = () => {
+      const f = new SpeechSynthesisUtterance(romanText || scriptText);
+      f.lang  = 'en-US'; f.rate = 0.78;
+      const eng = voiceList.find(v => v.lang.startsWith('en')) || voiceList[0];
+      if (eng) f.voice = eng;
+      window.speechSynthesis.speak(f);
+    };
     window.speechSynthesis.speak(u);
   };
-  if (window.speechSynthesis.getVoices().length > 0) trySpeak();
-  else { window.speechSynthesis.onvoiceschanged = () => { window.speechSynthesis.onvoiceschanged = null; trySpeak(); }; }
+
+  const v = window.speechSynthesis.getVoices();
+  if (v.length > 0) doSpeak(v);
+  else { window.speechSynthesis.onvoiceschanged = () => { window.speechSynthesis.onvoiceschanged = null; doSpeak(window.speechSynthesis.getVoices()); }; }
 }
 
 // ── Quiz inside lesson ────────────────────────────────────────────────────────
