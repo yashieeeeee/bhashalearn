@@ -132,9 +132,13 @@ function buildSentence(words) {
   return shuffle(words).slice(0, 5).map((w, i) => {
     const tmpl   = templates[i % templates.length](w);
     const decoys = shuffle(words.filter(x => x.hindi !== w.hindi)).slice(0, 3).map(x => x.target);
-    // tiles are strings; roman is same as the tile text for regional words (already romanized)
     const tiles  = shuffle([...tmpl.answer, ...decoys]);
-    return { type: 'sentence', hindi: w.hindi, roman: w.roman, english: tmpl.english, answer: tmpl.answer, tiles };
+    // romanMap: script word → roman so 🔊 always speaks roman regardless of script
+    const romanMap = {};
+    words.forEach(x => { romanMap[x.target] = x.roman; });
+    // filler words are already roman
+    ['aahe','chahibo','badhiya','ba'].forEach(r => { romanMap[r] = r; });
+    return { type: 'sentence', hindi: w.hindi, roman: w.roman, english: tmpl.english, answer: tmpl.answer, tiles, romanMap };
   });
 }
 
@@ -259,7 +263,7 @@ function SentenceBuilderQuestion({ q, langCode, onCorrect, onWrong }) {
               style={{ padding: '8px 14px', background: status === 'correct' ? '#E0F2F2' : status === 'wrong' ? '#FEE2E2' : '#FDF0E8', border: `1.5px solid ${status === 'correct' ? '#0D6E6E' : status === 'wrong' ? '#DC2626' : '#E8611A'}`, borderRadius: 10, fontSize: 15, fontWeight: 600, color: status === 'correct' ? '#0D6E6E' : status === 'wrong' ? '#DC2626' : '#E8611A', cursor: 'pointer' }}>
               {p.word}
             </button>
-            <button onClick={e => { e.stopPropagation(); speakRoman(p.word); }}
+            <button onClick={e => { e.stopPropagation(); speakRoman(q.romanMap?.[p.word] || p.word); }}
               style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, opacity: 0.6 }}
               title="Hear pronunciation">🔊</button>
           </div>
@@ -283,7 +287,7 @@ function SentenceBuilderQuestion({ q, langCode, onCorrect, onWrong }) {
                 {isUsed ? '\u00a0\u00a0\u00a0\u00a0' : word}
               </button>
               {!isUsed && (
-                <button onClick={e => { e.stopPropagation(); speakRoman(word); }}
+                <button onClick={e => { e.stopPropagation(); speakRoman(q.romanMap?.[word] || word); }}
                   style={{ background: 'rgba(26,18,8,0.05)', border: '1px solid rgba(26,18,8,0.1)', borderRadius: 8, width: 28, height: 28, cursor: 'pointer', fontSize: 13, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
                   title="Hear pronunciation">🔊</button>
               )}
