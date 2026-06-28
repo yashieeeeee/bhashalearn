@@ -7,25 +7,44 @@ import { generateQuiz } from '../utils/claude';
 import { soundCorrect, soundWrong, soundComplete, soundLevelUp, soundTap } from '../utils/sounds';
 
 // ── TTS for quiz options ──────────────────────────────────────────────────────
+// speakOption(scriptText, romanText, langCode)
+// If the browser has no voice for that language, reads roman text in English
+// so the user always hears SOMETHING instead of silence.
 const QUIZ_LANG_MAP = {
   bhojpuri:'hi-IN', tamil:'ta-IN', telugu:'te-IN', marathi:'mr-IN',
   bengali:'bn-IN', gujarati:'gu-IN', punjabi:'pa-IN', kannada:'kn-IN',
   malayalam:'ml-IN', urdu:'ur-IN', odia:'or-IN', assamese:'bn-IN',
 };
-function speakOption(text, langCode) {
+function speakOption(scriptText, romanText, langCode) {
   window.speechSynthesis.cancel();
   const lang   = QUIZ_LANG_MAP[langCode] || 'hi-IN';
   const voices = window.speechSynthesis.getVoices();
   const hasVoice = voices.some(v => v.lang === lang || v.lang.startsWith(lang.split('-')[0]));
-  const u = new SpeechSynthesisUtterance(text);
-  u.lang  = hasVoice ? lang : 'en-IN';
+
+  // If no voice available, fall back to roman in English
+  const textToSpeak = hasVoice ? scriptText : (romanText || scriptText);
+  const langToUse   = hasVoice ? lang : 'en-IN';
+
+  const u = new SpeechSynthesisUtterance(textToSpeak);
+  u.lang  = langToUse;
   u.rate  = 0.75;
+
+  u.onerror = () => {
+    const f = new SpeechSynthesisUtterance(romanText || scriptText);
+    f.lang = 'en-IN'; f.rate = 0.75;
+    window.speechSynthesis.speak(f);
+  };
+
   const trySpeak = () => {
-    const v   = window.speechSynthesis.getVoices();
-    const best = v.find(x => x.lang === u.lang) || v.find(x => x.lang.startsWith(u.lang.split('-')[0])) || v[0];
+    const v    = window.speechSynthesis.getVoices();
+    const best = v.find(x => x.lang === langToUse)
+               || v.find(x => x.lang.startsWith(langToUse.split('-')[0]))
+               || v.find(x => x.lang.includes('IN'))
+               || v[0];
     if (best) u.voice = best;
     window.speechSynthesis.speak(u);
   };
+
   if (window.speechSynthesis.getVoices().length > 0) trySpeak();
   else { window.speechSynthesis.onvoiceschanged = () => { window.speechSynthesis.onvoiceschanged = null; trySpeak(); }; }
 }
@@ -74,8 +93,9 @@ function buildSentence(words) {
   return shuffle(words).slice(0, 5).map((w, i) => {
     const tmpl   = templates[i % templates.length](w);
     const decoys = shuffle(words.filter(x => x.hindi !== w.hindi)).slice(0, 3).map(x => x.target);
+    // tiles are strings; roman is same as the tile text for regional words (already romanized)
     const tiles  = shuffle([...tmpl.answer, ...decoys]);
-    return { type: 'sentence', hindi: w.hindi, english: tmpl.english, answer: tmpl.answer, tiles };
+    return { type: 'sentence', hindi: w.hindi, roman: w.roman, english: tmpl.english, answer: tmpl.answer, tiles };
   });
 }
 
@@ -114,7 +134,7 @@ function JumbleQuestion({ q, langCode, onCorrect, onWrong }) {
         <div style={{ fontSize: 11, color: 'rgba(250,246,240,0.35)', marginBottom: 14, textTransform: 'uppercase', letterSpacing: '0.09em' }}>Spell the word!</div>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, marginBottom: 10 }}>
           <div style={{ fontFamily: "'Noto Sans Devanagari',sans-serif", fontSize: 48, fontWeight: 600, color: '#FAF6F0', lineHeight: 1.15 }}>{q.hindi}</div>
-          <button onClick={() => speakOption(q.hindi, langCode)} style={{ background: 'rgba(250,246,240,0.1)', border: '1px solid rgba(250,246,240,0.2)', borderRadius: '50%', width: 36, height: 36, cursor: 'pointer', fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>🔊</button>
+          <button onClick={() => speakOption(q.hindi, q.answer, langCode)} style={{ background: 'rgba(250,246,240,0.1)', border: '1px solid rgba(250,246,240,0.2)', borderRadius: '50%', width: 36, height: 36, cursor: 'pointer', fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>🔊</button>
         </div>
         <div style={{ fontSize: 14, color: 'rgba(250,246,240,0.5)' }}>{q.meaning}</div>
       </div>
@@ -200,7 +220,7 @@ function SentenceBuilderQuestion({ q, langCode, onCorrect, onWrong }) {
               style={{ padding: '8px 14px', background: status === 'correct' ? '#E0F2F2' : status === 'wrong' ? '#FEE2E2' : '#FDF0E8', border: `1.5px solid ${status === 'correct' ? '#0D6E6E' : status === 'wrong' ? '#DC2626' : '#E8611A'}`, borderRadius: 10, fontSize: 15, fontWeight: 600, color: status === 'correct' ? '#0D6E6E' : status === 'wrong' ? '#DC2626' : '#E8611A', cursor: 'pointer' }}>
               {p.word}
             </button>
-            <button onClick={e => { e.stopPropagation(); speakOption(p.word, langCode); }}
+            <button onClick={e => { e.stopPropagation(); speakOption(p.word, p.word, langCode); }}
               style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, opacity: 0.6 }}
               title="Hear pronunciation">🔊</button>
           </div>
@@ -224,7 +244,7 @@ function SentenceBuilderQuestion({ q, langCode, onCorrect, onWrong }) {
                 {isUsed ? '\u00a0\u00a0\u00a0\u00a0' : word}
               </button>
               {!isUsed && (
-                <button onClick={e => { e.stopPropagation(); speakOption(word, langCode); }}
+                <button onClick={e => { e.stopPropagation(); speakOption(word, word, langCode); }}
                   style={{ background: 'rgba(26,18,8,0.05)', border: '1px solid rgba(26,18,8,0.1)', borderRadius: 8, width: 28, height: 28, cursor: 'pointer', fontSize: 13, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
                   title="Hear pronunciation">🔊</button>
               )}
@@ -519,7 +539,7 @@ export default function Quiz() {
             <div style={{ fontSize: 11, color: 'rgba(250,246,240,0.35)', marginBottom: 14, textTransform: 'uppercase', letterSpacing: '0.09em' }}>What is this in {selectedLang}?</div>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, marginBottom: 10 }}>
               <div style={{ fontFamily: "'Noto Sans Devanagari',sans-serif", fontSize: 48, fontWeight: 600, color: '#FAF6F0', lineHeight: 1.15 }}>{q.hindi}</div>
-              <button onClick={() => speakOption(q.hindi, 'hindi')} style={{ background: 'rgba(250,246,240,0.1)', border: '1px solid rgba(250,246,240,0.2)', borderRadius: '50%', width: 36, height: 36, cursor: 'pointer', fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }} title="Hear Hindi pronunciation">🔊</button>
+              <button onClick={() => speakOption(q.hindi, q.roman, 'hindi')} style={{ background: 'rgba(250,246,240,0.1)', border: '1px solid rgba(250,246,240,0.2)', borderRadius: '50%', width: 36, height: 36, cursor: 'pointer', fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }} title="Hear Hindi pronunciation">🔊</button>
             </div>
             {q.roman && (
               <div style={{ display: 'inline-flex', gap: 8, background: 'rgba(250,246,240,0.08)', borderRadius: 99, padding: '5px 14px', fontSize: 13, color: 'rgba(250,246,240,0.55)' }}>
@@ -542,7 +562,7 @@ export default function Quiz() {
                     {opt}
                   </span>
                   <span
-                    onClick={e => { e.stopPropagation(); speakOption(opt, selectedLang); }}
+                    onClick={e => { e.stopPropagation(); speakOption(opt, opt, selectedLang); }}
                     style={{ fontSize: 16, opacity: 0.55, cursor: 'pointer', padding: '2px 4px', flexShrink: 0 }}
                     title="Hear pronunciation"
                   >🔊</span>
