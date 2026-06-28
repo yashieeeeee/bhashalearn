@@ -1,5 +1,29 @@
 import { useState } from 'react';
 import { soundCorrect, soundWrong, soundComplete, soundLevelUp, soundTap } from '../utils/sounds';
+
+// ── TTS for quiz options ──────────────────────────────────────────────────────
+const QUIZ_LANG_MAP = {
+  bhojpuri:'hi-IN', tamil:'ta-IN', telugu:'te-IN', marathi:'mr-IN',
+  bengali:'bn-IN', gujarati:'gu-IN', punjabi:'pa-IN', kannada:'kn-IN',
+  malayalam:'ml-IN', urdu:'ur-IN', odia:'or-IN', assamese:'bn-IN',
+};
+function speakOption(text, langCode) {
+  window.speechSynthesis.cancel();
+  const lang   = QUIZ_LANG_MAP[langCode] || 'hi-IN';
+  const voices = window.speechSynthesis.getVoices();
+  const hasVoice = voices.some(v => v.lang === lang || v.lang.startsWith(lang.split('-')[0]));
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang  = hasVoice ? lang : 'en-IN';
+  u.rate  = 0.75;
+  const trySpeak = () => {
+    const v   = window.speechSynthesis.getVoices();
+    const best = v.find(x => x.lang === u.lang) || v.find(x => x.lang.startsWith(u.lang.split('-')[0])) || v[0];
+    if (best) u.voice = best;
+    window.speechSynthesis.speak(u);
+  };
+  if (window.speechSynthesis.getVoices().length > 0) trySpeak();
+  else { window.speechSynthesis.onvoiceschanged = () => { window.speechSynthesis.onvoiceschanged = null; trySpeak(); }; }
+}
 import { LESSONS_DATA } from '../data/content';
 import { useAuth } from '../context/AuthContext';
 import { saveQuizScore, getQuizScores, supabase, recordActivity } from '../utils/supabase';
@@ -478,7 +502,10 @@ export default function Quiz() {
         <>
           <div className="fade-up-2 bl-card-dark" style={{ padding: '28px 24px', textAlign: 'center', marginBottom: '1.25rem' }}>
             <div style={{ fontSize: 11, color: 'rgba(250,246,240,0.35)', marginBottom: 14, textTransform: 'uppercase', letterSpacing: '0.09em' }}>What is this in {selectedLang}?</div>
-            <div style={{ fontFamily: "'Noto Sans Devanagari',sans-serif", fontSize: 48, fontWeight: 600, color: '#FAF6F0', lineHeight: 1.15, marginBottom: 10 }}>{q.hindi}</div>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, marginBottom: 10 }}>
+              <div style={{ fontFamily: "'Noto Sans Devanagari',sans-serif", fontSize: 48, fontWeight: 600, color: '#FAF6F0', lineHeight: 1.15 }}>{q.hindi}</div>
+              <button onClick={() => speakOption(q.hindi, 'hindi')} style={{ background: 'rgba(250,246,240,0.1)', border: '1px solid rgba(250,246,240,0.2)', borderRadius: '50%', width: 36, height: 36, cursor: 'pointer', fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }} title="Hear Hindi pronunciation">🔊</button>
+            </div>
             {q.roman && (
               <div style={{ display: 'inline-flex', gap: 8, background: 'rgba(250,246,240,0.08)', borderRadius: 99, padding: '5px 14px', fontSize: 13, color: 'rgba(250,246,240,0.55)' }}>
                 <span>{q.roman}</span>{q.meaning && <><span>·</span><span>{q.meaning}</span></>}
@@ -494,9 +521,16 @@ export default function Quiz() {
               if (answered && isCorrect) cls = 'correct';
               else if (answered && isSelected) cls = 'wrong';
               return (
-                <button key={i} onClick={() => pick(i)} disabled={answered} className={`bl-option-btn ${cls}`}>
-                  <span className="bl-option-letter">{answered && isCorrect ? '✓' : answered && isSelected ? '✕' : OPTION_LETTERS[i]}</span>
-                  {opt}
+                <button key={i} onClick={() => pick(i)} disabled={answered} className={`bl-option-btn ${cls}`} style={{ justifyContent: 'space-between' }}>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <span className="bl-option-letter">{answered && isCorrect ? '✓' : answered && isSelected ? '✕' : OPTION_LETTERS[i]}</span>
+                    {opt}
+                  </span>
+                  <span
+                    onClick={e => { e.stopPropagation(); speakOption(opt, selectedLang); }}
+                    style={{ fontSize: 16, opacity: 0.55, cursor: 'pointer', padding: '2px 4px', flexShrink: 0 }}
+                    title="Hear pronunciation"
+                  >🔊</span>
                 </button>
               );
             })}
