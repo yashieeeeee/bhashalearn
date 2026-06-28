@@ -79,7 +79,7 @@ function buildSentence(words) {
   });
 }
 
-function JumbleQuestion({ q, onCorrect, onWrong }) {
+function JumbleQuestion({ q, langCode, onCorrect, onWrong }) {
   const [picked, setPicked] = useState([]);
   const [used, setUsed]     = useState([]);
   const [status, setStatus] = useState(null);
@@ -112,7 +112,10 @@ function JumbleQuestion({ q, onCorrect, onWrong }) {
     <div>
       <div className="bl-card-dark" style={{ padding: '28px 24px', textAlign: 'center', marginBottom: '1.25rem' }}>
         <div style={{ fontSize: 11, color: 'rgba(250,246,240,0.35)', marginBottom: 14, textTransform: 'uppercase', letterSpacing: '0.09em' }}>Spell the word!</div>
-        <div style={{ fontFamily: "'Noto Sans Devanagari',sans-serif", fontSize: 48, fontWeight: 600, color: '#FAF6F0', lineHeight: 1.15, marginBottom: 10 }}>{q.hindi}</div>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, marginBottom: 10 }}>
+          <div style={{ fontFamily: "'Noto Sans Devanagari',sans-serif", fontSize: 48, fontWeight: 600, color: '#FAF6F0', lineHeight: 1.15 }}>{q.hindi}</div>
+          <button onClick={() => speakOption(q.hindi, langCode)} style={{ background: 'rgba(250,246,240,0.1)', border: '1px solid rgba(250,246,240,0.2)', borderRadius: '50%', width: 36, height: 36, cursor: 'pointer', fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>🔊</button>
+        </div>
         <div style={{ fontSize: 14, color: 'rgba(250,246,240,0.5)' }}>{q.meaning}</div>
       </div>
 
@@ -152,7 +155,7 @@ function JumbleQuestion({ q, onCorrect, onWrong }) {
   );
 }
 
-function SentenceBuilderQuestion({ q, onCorrect, onWrong }) {
+function SentenceBuilderQuestion({ q, langCode, onCorrect, onWrong }) {
   const [picked, setPicked]   = useState([]);
   const [used, setUsed]       = useState([]);
   const [status, setStatus]   = useState(null);
@@ -192,10 +195,15 @@ function SentenceBuilderQuestion({ q, onCorrect, onWrong }) {
       <div style={{ minHeight: 64, background: 'var(--bl-surface, #fff)', border: `2px dashed ${status === 'correct' ? '#0D6E6E' : status === 'wrong' ? '#DC2626' : 'rgba(26,18,8,0.15)'}`, borderRadius: 14, padding: '12px 16px', marginBottom: 16, display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
         {picked.length === 0 && <span style={{ color: '#D0C4B8', fontSize: 14 }}>Tap words below to build the sentence...</span>}
         {picked.map((p, i) => (
-          <button key={i} onClick={() => removeWord(i)}
-            style={{ padding: '8px 14px', background: status === 'correct' ? '#E0F2F2' : status === 'wrong' ? '#FEE2E2' : '#FDF0E8', border: `1.5px solid ${status === 'correct' ? '#0D6E6E' : status === 'wrong' ? '#DC2626' : '#E8611A'}`, borderRadius: 10, fontSize: 15, fontWeight: 600, color: status === 'correct' ? '#0D6E6E' : status === 'wrong' ? '#DC2626' : '#E8611A', cursor: 'pointer' }}>
-            {p.word}
-          </button>
+          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+            <button onClick={() => removeWord(i)}
+              style={{ padding: '8px 14px', background: status === 'correct' ? '#E0F2F2' : status === 'wrong' ? '#FEE2E2' : '#FDF0E8', border: `1.5px solid ${status === 'correct' ? '#0D6E6E' : status === 'wrong' ? '#DC2626' : '#E8611A'}`, borderRadius: 10, fontSize: 15, fontWeight: 600, color: status === 'correct' ? '#0D6E6E' : status === 'wrong' ? '#DC2626' : '#E8611A', cursor: 'pointer' }}>
+              {p.word}
+            </button>
+            <button onClick={e => { e.stopPropagation(); speakOption(p.word, langCode); }}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, opacity: 0.6 }}
+              title="Hear pronunciation">🔊</button>
+          </div>
         ))}
       </div>
 
@@ -210,10 +218,17 @@ function SentenceBuilderQuestion({ q, onCorrect, onWrong }) {
         {q.tiles.map((word, idx) => {
           const isUsed = used.includes(idx);
           return (
-            <button key={idx} onClick={() => tapWord(word, idx)} disabled={isUsed || checked}
-              style={{ padding: '10px 18px', background: isUsed ? 'rgba(26,18,8,0.04)' : '#fff', border: '2px solid rgba(26,18,8,0.12)', borderRadius: 12, fontSize: 15, fontWeight: 600, color: isUsed ? 'transparent' : '#1A1208', cursor: isUsed ? 'default' : 'pointer', boxShadow: isUsed ? 'none' : '0 2px 8px rgba(26,18,8,0.08)', transition: 'all 0.15s' }}>
-              {isUsed ? '\u00a0\u00a0\u00a0\u00a0' : word}
-            </button>
+            <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+              <button onClick={() => tapWord(word, idx)} disabled={isUsed || checked}
+                style={{ padding: '10px 14px', background: isUsed ? 'rgba(26,18,8,0.04)' : '#fff', border: '2px solid rgba(26,18,8,0.12)', borderRadius: 12, fontSize: 15, fontWeight: 600, color: isUsed ? 'transparent' : '#1A1208', cursor: isUsed ? 'default' : 'pointer', boxShadow: isUsed ? 'none' : '0 2px 8px rgba(26,18,8,0.08)', transition: 'all 0.15s' }}>
+                {isUsed ? '\u00a0\u00a0\u00a0\u00a0' : word}
+              </button>
+              {!isUsed && (
+                <button onClick={e => { e.stopPropagation(); speakOption(word, langCode); }}
+                  style={{ background: 'rgba(26,18,8,0.05)', border: '1px solid rgba(26,18,8,0.1)', borderRadius: 8, width: 28, height: 28, cursor: 'pointer', fontSize: 13, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
+                  title="Hear pronunciation">🔊</button>
+              )}
+            </div>
           );
         })}
       </div>
@@ -553,11 +568,11 @@ export default function Quiz() {
       )}
 
       {q.type === 'jumble' && (
-        <JumbleQuestion key={`j-${qIndex}`} q={q} onCorrect={handleCorrect} onWrong={handleWrong} />
+        <JumbleQuestion key={`j-${qIndex}`} q={q} langCode={selectedLang} onCorrect={handleCorrect} onWrong={handleWrong} />
       )}
 
       {q.type === 'sentence' && (
-        <SentenceBuilderQuestion key={`s-${qIndex}`} q={q} onCorrect={handleCorrect} onWrong={handleWrong} />
+        <SentenceBuilderQuestion key={`s-${qIndex}`} q={q} langCode={selectedLang} onCorrect={handleCorrect} onWrong={handleWrong} />
       )}
     </div>
   );
