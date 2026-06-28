@@ -68,6 +68,26 @@ function speakOption(scriptText, romanText, langCode) {
   }
 }
 
+// speakRoman — always speaks in en-US, used for romanized words like 'aahe', 'chahibo'
+function speakRoman(text) {
+  window.speechSynthesis.cancel();
+  const voices = window.speechSynthesis.getVoices();
+  const doIt = (vList) => {
+    const u   = new SpeechSynthesisUtterance(text);
+    u.lang    = 'en-US';
+    u.rate    = 0.72;
+    u.pitch   = 1;
+    u.volume  = 1;
+    const eng = vList.find(v => v.lang === 'en-US')
+             || vList.find(v => v.lang.startsWith('en'))
+             || vList[0];
+    if (eng) u.voice = eng;
+    window.speechSynthesis.speak(u);
+  };
+  if (voices.length > 0) doIt(voices);
+  else { window.speechSynthesis.onvoiceschanged = () => { window.speechSynthesis.onvoiceschanged = null; doIt(window.speechSynthesis.getVoices()); }; }
+}
+
 const LANGS = ['bhojpuri','tamil','telugu','marathi','bengali','gujarati','kannada','malayalam','punjabi','odia','urdu','assamese'];
 const LANG_EMOJI = { bhojpuri:'🌾', tamil:'🌴', telugu:'🌺', marathi:'🦁', bengali:'🎨', gujarati:'🪔', kannada:'🌿', malayalam:'🌊', punjabi:'🌻', odia:'🪷', urdu:'🌙', assamese:'🦋' };
 const OPTION_LETTERS = ['A','B','C','D'];
@@ -239,7 +259,7 @@ function SentenceBuilderQuestion({ q, langCode, onCorrect, onWrong }) {
               style={{ padding: '8px 14px', background: status === 'correct' ? '#E0F2F2' : status === 'wrong' ? '#FEE2E2' : '#FDF0E8', border: `1.5px solid ${status === 'correct' ? '#0D6E6E' : status === 'wrong' ? '#DC2626' : '#E8611A'}`, borderRadius: 10, fontSize: 15, fontWeight: 600, color: status === 'correct' ? '#0D6E6E' : status === 'wrong' ? '#DC2626' : '#E8611A', cursor: 'pointer' }}>
               {p.word}
             </button>
-            <button onClick={e => { e.stopPropagation(); speakOption(p.word, p.word, langCode); }}
+            <button onClick={e => { e.stopPropagation(); speakRoman(p.word); }}
               style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, opacity: 0.6 }}
               title="Hear pronunciation">🔊</button>
           </div>
@@ -263,7 +283,7 @@ function SentenceBuilderQuestion({ q, langCode, onCorrect, onWrong }) {
                 {isUsed ? '\u00a0\u00a0\u00a0\u00a0' : word}
               </button>
               {!isUsed && (
-                <button onClick={e => { e.stopPropagation(); speakOption(word, word, langCode); }}
+                <button onClick={e => { e.stopPropagation(); speakRoman(word); }}
                   style={{ background: 'rgba(26,18,8,0.05)', border: '1px solid rgba(26,18,8,0.1)', borderRadius: 8, width: 28, height: 28, cursor: 'pointer', fontSize: 13, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
                   title="Hear pronunciation">🔊</button>
               )}
