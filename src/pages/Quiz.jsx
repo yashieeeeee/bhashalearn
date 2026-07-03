@@ -306,7 +306,7 @@ function SentenceBuilderQuestion({ q, langCode, onCorrect, onWrong }) {
 }
 
 export default function Quiz() {
-  const { user, profile }               = useAuth();
+  const { user, profile, refreshProfile } = useAuth();
   const [selectedLang, setSelectedLang] = useState(() => getS('lang', 'bhojpuri'));
   const [questions, setQuestions]       = useState(() => getS('questions', null));
   const [loading, setLoading]           = useState(false);
@@ -378,6 +378,7 @@ export default function Quiz() {
           total_xp: newXp,
           perfect_quizzes: score === questions.length ? (profile?.perfect_quizzes || 0) + 1 : (profile?.perfect_quizzes || 0),
         }).eq('id', user.id);
+        await refreshProfile();
         setSaved(true); setS('saved', true);
       }
       return;
@@ -386,16 +387,24 @@ export default function Quiz() {
     setSelected(null);  setS('selected', null);
   }
 
-  function handleCorrect() {
+  async function handleCorrect() {
     soundCorrect();
-    setScore(s => { const n = s + 1; setS('score', n); return n; });
+    const newScore = score + 1;
+    setScore(() => { setS('score', newScore); return newScore; });
     const nextIdx = qIndex + 1;
     if (nextIdx >= questions.length) {
       setDone(true); setS('done', true);
       soundComplete();
       if (user && !saved) {
-        saveQuizScore(user.id, score + 1, questions.length, selectedLang);
-        supabase.from('profiles').update({ total_xp: (profile?.total_xp || 0) + score + 1 }).eq('id', user.id);
+        const newXp    = (profile?.total_xp || 0) + newScore;
+        const oldLevel = Math.floor((profile?.total_xp || 0) / 20);
+        const newLevel = Math.floor(newXp / 20);
+        if (newLevel > oldLevel) soundLevelUp();
+        await saveQuizScore(user.id, newScore, questions.length, selectedLang);
+        await supabase.from('profiles').update({ total_xp: newXp }).eq('id', user.id);
+        const { newStreak, streakIncreased } = await recordActivity(user.id);
+        if (streakIncreased) setStreakData({ streak: newStreak });
+        await refreshProfile();
         setSaved(true); setS('saved', true);
       }
     } else { setQIndex(nextIdx); setS('qIndex', nextIdx); }
