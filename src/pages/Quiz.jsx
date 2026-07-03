@@ -124,22 +124,57 @@ function buildJumble(words) {
 }
 
 function buildSentence(words) {
-  const templates = [
-    w => ({ hindi: `yah ___ hai`, answer: [w.target, 'aahe'], english: `This is ${w.meaning}` }),
-    w => ({ hindi: `mujhe ___ chahiye`, answer: [w.target, 'chahibo'], english: `I want ${w.meaning}` }),
-    w => ({ hindi: `___ accha hai`, answer: [w.target, 'badhiya', 'ba'], english: `${w.meaning} is good` }),
-  ];
-  return shuffle(words).slice(0, 5).map((w, i) => {
-    const tmpl   = templates[i % templates.length](w);
-    const decoys = shuffle(words.filter(x => x.hindi !== w.hindi)).slice(0, 3).map(x => x.target);
-    const tiles  = shuffle([...tmpl.answer, ...decoys]);
-    // romanMap: script word → roman so 🔊 always speaks roman regardless of script
-    const romanMap = {};
-    words.forEach(x => { romanMap[x.target] = x.roman; });
-    // filler words are already roman
-    ['aahe','chahibo','badhiya','ba'].forEach(r => { romanMap[r] = r; });
-    return { type: 'sentence', hindi: w.hindi, roman: w.roman, english: tmpl.english, answer: tmpl.answer, tiles, romanMap };
-  });
+  // Build romanMap from all words: target script → roman
+  const romanMap = {};
+  words.forEach(w => { romanMap[w.target] = w.roman; });
+
+  // Each question: pick 2 words from the lesson and combine them into a real mini-sentence
+  // Show English meaning of the sentence, user arranges the target-language words
+  // This avoids mixing Hindi/English fillers with target language words
+  const picked = shuffle(words).slice(0, Math.min(words.length, 6));
+  const questions = [];
+
+  // Pair words into 2-word sentences: "Word1 Word2" = "Meaning1 + Meaning2"
+  for (let i = 0; i + 1 < picked.length && questions.length < 5; i += 2) {
+    const w1 = picked[i];
+    const w2 = picked[i + 1];
+    // answer = [w1.target, w2.target] in correct order
+    const answer = [w1.target, w2.target];
+    // decoys = 2 other target words from remaining words
+    const decoys = shuffle(words.filter(w => w.target !== w1.target && w.target !== w2.target))
+      .slice(0, 2).map(w => w.target);
+    const tiles = shuffle([...answer, ...decoys]);
+    // romanMap entries for decoys too
+    words.forEach(w => { romanMap[w.target] = w.roman; });
+
+    questions.push({
+      type: 'sentence',
+      // Show Hindi original for both words
+      hindi: `${w1.hindi} + ${w2.hindi}`,
+      // English prompt = "Arrange: [Meaning1] and [Meaning2]"
+      english: `${w1.meaning} — ${w2.meaning}`,
+      answer,
+      tiles,
+      romanMap,
+    });
+  }
+
+  // If only 1 word available for last question, make a single-word identification
+  if (questions.length < 5 && picked.length > 0) {
+    const w = picked[picked.length - 1];
+    const decoys = shuffle(words.filter(x => x.target !== w.target)).slice(0, 3).map(x => x.target);
+    const tiles  = shuffle([w.target, ...decoys]);
+    questions.push({
+      type: 'sentence',
+      hindi: w.hindi,
+      english: `Find: ${w.meaning}`,
+      answer: [w.target],
+      tiles,
+      romanMap,
+    });
+  }
+
+  return questions;
 }
 
 function JumbleQuestion({ q, langCode, onCorrect, onWrong }) {
@@ -251,8 +286,9 @@ function SentenceBuilderQuestion({ q, langCode, onCorrect, onWrong }) {
     <div>
       <div className="bl-card-dark" style={{ padding: '28px 24px', textAlign: 'center', marginBottom: '1.25rem' }}>
         <div style={{ fontSize: 11, color: 'rgba(250,246,240,0.35)', marginBottom: 14, textTransform: 'uppercase', letterSpacing: '0.09em' }}>Arrange the words</div>
-        <div style={{ fontFamily: "'Noto Sans Devanagari',sans-serif", fontSize: 32, fontWeight: 600, color: '#FAF6F0', lineHeight: 1.4, marginBottom: 8 }}>{q.hindi}</div>
-        <div style={{ fontSize: 14, color: 'rgba(250,246,240,0.5)' }}>{q.english}</div>
+        <div style={{ fontFamily: "'Noto Sans Devanagari',sans-serif", fontSize: 28, fontWeight: 600, color: '#FAF6F0', lineHeight: 1.5, marginBottom: 8 }}>{q.hindi}</div>
+        <div style={{ fontSize: 13, color: 'rgba(250,246,240,0.45)', marginBottom: 4 }}>English: <span style={{ color: 'rgba(250,246,240,0.75)', fontWeight: 500 }}>{q.english}</span></div>
+        <div style={{ fontSize: 12, color: 'rgba(250,246,240,0.35)' }}>Arrange the words in the correct order</div>
       </div>
 
       <div style={{ minHeight: 64, background: 'var(--bl-surface, #fff)', border: `2px dashed ${status === 'correct' ? '#0D6E6E' : status === 'wrong' ? '#DC2626' : 'rgba(26,18,8,0.15)'}`, borderRadius: 14, padding: '12px 16px', marginBottom: 16, display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
