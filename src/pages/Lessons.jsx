@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { LANGUAGES, LESSONS_DATA } from '../data/content';
 import { UNITS, LESSON_ORDER, getLessonWords } from '../data/curriculum';
-import { generateQuiz } from '../utils/claude';
+
 import { useAuth } from '../context/AuthContext';
 import { supabase, recordActivity } from '../utils/supabase';
 import { soundCorrect, soundWrong, soundComplete, soundLevelUp, soundTap } from '../utils/sounds';
