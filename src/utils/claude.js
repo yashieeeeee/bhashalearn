@@ -122,3 +122,27 @@ Give clear helpful answers. Always include the word in native script + Roman tra
 Keep responses concise (3-5 sentences) and end with encouragement.`;
   return await callGemini(system, userMessage, 800);
 }
+// ─── Lesson Word Translator ───────────────────────────────────────────────────
+// Translates curriculum words (Hindi → meaning) into the target language
+export async function translateLesson(words, langName) {
+  const system = `You are a ${langName} language expert. Translate Hindi words to ${langName}.
+Return ONLY valid JSON, no markdown, no backticks:
+{"words":[{"hindi":"hindi word","target":"word in ${langName} script","roman":"romanized pronunciation","meaning":"english meaning"}]}
+Keep the same order as input. Be accurate with ${langName} script and romanization.`;
+
+  try {
+    const text = await callGemini(
+      system,
+      `Translate these Hindi words to ${langName}: ${JSON.stringify(words.map(w => ({ hindi: w.hindi, meaning: w.meaning })))}`,
+      800
+    );
+    const match = text.match(/\{[\s\S]*\}/);
+    if (!match) throw new Error('No JSON');
+    const parsed = JSON.parse(match[0]);
+    if (!parsed.words?.length) throw new Error('Empty');
+    return parsed.words;
+  } catch {
+    // Fallback: return words with meaning as target so quiz still works
+    return words.map(w => ({ ...w, target: w.meaning, roman: w.roman || w.meaning }));
+  }
+}
