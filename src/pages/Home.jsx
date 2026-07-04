@@ -95,7 +95,7 @@ export default function Home() {
   const lastActive  = profile?.last_active;
   const doneToday   = lastActive === today;
   // Show streak as "at risk" if not done today yet
-
+  const displayStreak = doneToday ? streak : streak; // number stays same
   const streakAtRisk  = !doneToday && streak > 0;    // but we flag it
   const totalXp     = profile?.total_xp      || 0;
   const wordsLearned = profile?.words_learned || 0;
@@ -103,10 +103,24 @@ export default function Home() {
   const xpInLevel   = totalXp % 20;
 
   // Map each day of the week to its real status based on today's date
-  const todayIndex = (new Date().getDay() + 6) % 7; // Sun=6,Mon=0,Tue=1...Sat=5
+  const todayIndex = (new Date().getDay() + 6) % 7; // Mon=0,Tue=1,...,Sat=5,Sun=6
+
   const streakStatus = WEEK_DAYS.map((_, i) => {
-    if (i === todayIndex) return 'today';
-    if (i < todayIndex && i >= todayIndex - (streak - 1)) return 'done';
+    if (i === todayIndex) {
+      // Today: done only if user already did activity, else pending
+      return doneToday ? 'done' : 'today';
+    }
+    if (i < todayIndex) {
+      // Past days this week
+      if (doneToday) {
+        // Activity done today — streak includes today, so go back streak-1 days
+        return i >= todayIndex - (streak - 1) ? 'done' : 'upcoming';
+      } else {
+        // Not done today — streak days are yesterday and before
+        return i >= todayIndex - streak ? 'done' : 'upcoming';
+      }
+    }
+    // Future days this week
     return 'upcoming';
   });
 
@@ -206,7 +220,7 @@ export default function Home() {
               <div key={d} className={`bl-streak-day ${status}`} style={{ flex: 1 }}>
                 <div style={{ fontSize: 10, fontWeight: 600, color: isDone || isToday ? '#FAF6F0' : muted, marginBottom: 4 }}>{d}</div>
                 <div style={{ fontSize: 14, color: isDone || isToday ? '#FAF6F0' : muted }}>
-                  {isDone ? '✓' : isToday ? '●' : '·'}
+                  {isDone ? '✓' : isToday ? '○' : '·'}
                 </div>
               </div>
             );

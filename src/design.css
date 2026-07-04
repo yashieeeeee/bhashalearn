@@ -238,7 +238,7 @@ button { font-family: inherit; }
   transition: all 0.2s;
 }
 .bl-streak-day.done    { background: linear-gradient(135deg, #0D6E6E, #0A5555); }
-.bl-streak-day.today   { background: linear-gradient(135deg, #E8611A, #C94D12); box-shadow: 0 4px 12px rgba(232,97,26,0.35); }
+.bl-streak-day.today   { background: transparent; border: 2px solid #E8611A; box-shadow: 0 0 8px rgba(232,97,26,0.25); }
 .bl-streak-day.upcoming{ background: rgba(26,18,8,0.04); }
 
 /* ── Sidebar nav item ── */
