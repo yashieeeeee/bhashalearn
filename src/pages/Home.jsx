@@ -31,24 +31,26 @@ function FreezeCard({ freezes, totalXp, onBuy, buying }) {
         </div>
       </div>
       <div style={{ flexShrink: 0, textAlign: 'center' }}>
-        {freezes > 0 ? (
-          <div style={{ display: 'flex', gap: 4 }}>
-            {Array.from({ length: Math.min(freezes, 3) }, (_, i) => (
-              <span key={i} style={{ fontSize: 20 }}>🧊</span>
-            ))}
-          </div>
-        ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 8 }}>
+          {freezes > 0 && (
+            <div style={{ display: 'flex', gap: 4 }}>
+              {Array.from({ length: Math.min(freezes, 3) }, (_, i) => (
+                <span key={i} style={{ fontSize: 20 }}>🧊</span>
+              ))}
+              {freezes > 3 && <span style={{ fontSize: 11, color: 'rgba(250,246,240,0.5)', alignSelf: 'center' }}>+{freezes - 3}</span>}
+            </div>
+          )}
           <button onClick={onBuy} disabled={!canAfford || buying}
             style={{
-              background: canAfford && !buying ? '#3B82F6' : 'rgba(250,246,240,0.1)',
+              background: canAfford && !buying ? '#3B82F6' : 'rgba(250,246,240,0.08)',
               color: canAfford && !buying ? '#FAF6F0' : 'rgba(250,246,240,0.3)',
-              border: 'none', borderRadius: 10, padding: '8px 14px',
-              fontSize: 12, fontWeight: 700, cursor: canAfford && !buying ? 'pointer' : 'not-allowed',
+              border: 'none', borderRadius: 10, padding: '7px 12px',
+              fontSize: 11, fontWeight: 700, cursor: canAfford && !buying ? 'pointer' : 'not-allowed',
               whiteSpace: 'nowrap',
             }}>
-            {buying ? 'Buying...' : canAfford ? 'Buy — 50 XP' : `Need ${50 - totalXp} more XP`}
+            {buying ? '...' : canAfford ? '+ Buy 50 XP' : `${50 - totalXp} XP needed`}
           </button>
-        )}
+        </div>
       </div>
     </div>
   );
