@@ -97,15 +97,17 @@ export async function recordActivity(userId) {
   } else if (last) {
     // Missed at least one day
     const daysMissed = Math.floor((new Date(today) - new Date(last)) / 86400000) - 1;
+    console.log('BhashaLearn streak check:', { daysMissed, freezes, last, today });
     if (daysMissed <= 1 && freezes > 0) {
       // Missed exactly 1 day and has a freeze — protect the streak!
       newStreak  = (profile.streak || 0) + 1;
       freezeUsed = true;
-      await upsertProfile(userId, {
+      const { error } = await supabase.from('profiles').update({
         streak: newStreak,
         last_active: today,
         streak_freezes: freezes - 1,
-      });
+      }).eq('id', userId);
+      if (error) console.error('Freeze activation error:', error.message);
       return { newStreak, streakIncreased: true, freezeUsed: true };
     } else {
       // Missed too many days or no freeze — reset
@@ -115,7 +117,11 @@ export async function recordActivity(userId) {
     newStreak = 1;
   }
 
-  await upsertProfile(userId, { streak: newStreak, last_active: today });
+  const { error: err } = await supabase.from('profiles').update({
+    streak: newStreak,
+    last_active: today,
+  }).eq('id', userId);
+  if (err) console.error('recordActivity error:', err.message);
   return { newStreak, streakIncreased: true, freezeUsed };
 }
 
