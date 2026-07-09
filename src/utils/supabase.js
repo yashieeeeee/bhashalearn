@@ -124,10 +124,15 @@ export async function buyStreakFreeze(userId) {
   const profile = await getProfile(userId);
   if (!profile) return { success: false, reason: 'No profile' };
   if ((profile.total_xp || 0) < 50) return { success: false, reason: 'Not enough XP' };
-  await upsertProfile(userId, {
+  const currentFreezes = profile.streak_freezes ?? 1; // null = existing user, treat as 1
+  const { error } = await supabase.from('profiles').update({
     total_xp: (profile.total_xp || 0) - 50,
-    streak_freezes: (profile.streak_freezes || 0) + 1,
-  });
+    streak_freezes: currentFreezes + 1,
+  }).eq('id', userId);
+  if (error) {
+    console.error('buyStreakFreeze error:', error.message);
+    return { success: false, reason: error.message };
+  }
   return { success: true };
 }
 

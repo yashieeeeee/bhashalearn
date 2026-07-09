@@ -140,14 +140,20 @@ export default function Home() {
   const { dark } = useTheme();
   const navigate = useNavigate();
   const [buying, setBuying] = useState(false);
+  const [localFreezes, setLocalFreezes] = useState(null);
 
   // Give existing users 1 free freeze if column was null (created before feature)
-  const freezes = profile?.streak_freezes ?? 1;
+  const freezes = localFreezes ?? (profile?.streak_freezes ?? 1);
 
   async function handleBuyFreeze() {
     if (!user || buying) return;
+    if (totalXp < 50) return;
     setBuying(true);
-    await buyStreakFreeze(user.id);
+    const result = await buyStreakFreeze(user.id);
+    if (result?.success) {
+      // Update locally immediately so UI reflects change without waiting for DB
+      setLocalFreezes((localFreezes ?? (profile?.streak_freezes ?? 1)) + 1);
+    }
     await refreshProfile();
     setBuying(false);
   }
