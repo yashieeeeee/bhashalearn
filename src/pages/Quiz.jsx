@@ -438,8 +438,8 @@ export default function Quiz() {
         if (newLevel > oldLevel) soundLevelUp();
         await saveQuizScore(user.id, newScore, questions.length, selectedLang);
         await supabase.from('profiles').update({ total_xp: newXp }).eq('id', user.id);
-        const { newStreak, streakIncreased } = await recordActivity(user.id);
-        if (streakIncreased) setStreakData({ streak: newStreak });
+        const { newStreak, streakIncreased, freezeUsed } = await recordActivity(user.id);
+        if (streakIncreased) setStreakData({ streak: newStreak, freezeUsed });
         await refreshProfile();
         setSaved(true); setS('saved', true);
       }
@@ -580,7 +580,7 @@ export default function Quiz() {
             </div>
           ))}
         </div>
-        {streakData && <StreakPopup streak={streakData.streak} onClose={() => setStreakData(null)} />}
+        {streakData && <StreakPopup streak={streakData.streak} freezeUsed={streakData.freezeUsed} onClose={() => setStreakData(null)} />}
       <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
           <button onClick={() => startQuiz(selectedLang, quizMode)} style={{ background: '#1A1208', color: '#FAF6F0', border: 'none', borderRadius: 12, padding: '13px 22px', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>Try Again 🔄</button>
           <button onClick={reset} style={{ background: '#FDF0E8', color: '#E8611A', border: '1.5px solid rgba(232,97,26,0.3)', borderRadius: 12, padding: '13px 22px', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>Change Mode</button>
@@ -591,7 +591,7 @@ export default function Quiz() {
   }
 
   // Render streak popup when earned
-  const streakPopupEl = streakData ? <StreakPopup streak={streakData.streak} onClose={() => { setStreakData(null); }} /> : null;
+  const streakPopupEl = streakData ? <StreakPopup streak={streakData.streak} freezeUsed={streakData.freezeUsed} onClose={() => { setStreakData(null); }} /> : null;
 
   const q        = questions[qIndex];
   const progress = (qIndex / questions.length) * 100;

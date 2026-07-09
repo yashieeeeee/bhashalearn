@@ -76,26 +76,59 @@ export async function recordActivity(userId) {
   const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
 
   if (!profile) {
-    await upsertProfile(userId, { streak: 1, last_active: today });
-    return { newStreak: 1, streakIncreased: true };
+    await upsertProfile(userId, { streak: 1, last_active: today, streak_freezes: 1 });
+    return { newStreak: 1, streakIncreased: true, freezeUsed: false };
   }
 
-  const last = profile.last_active;
+  const last     = profile.last_active;
+  const freezes  = profile.streak_freezes || 0;
 
   // Already recorded activity today — don't increment again
   if (last === today) {
-    return { newStreak: profile.streak || 1, streakIncreased: false };
+    return { newStreak: profile.streak || 1, streakIncreased: false, freezeUsed: false };
   }
 
   let newStreak;
+  let freezeUsed = false;
+
   if (last === yesterday) {
-    newStreak = (profile.streak || 0) + 1; // extend streak
+    // Consecutive day — extend streak normally
+    newStreak = (profile.streak || 0) + 1;
+  } else if (last) {
+    // Missed at least one day
+    const daysMissed = Math.floor((new Date(today) - new Date(last)) / 86400000) - 1;
+    if (daysMissed <= 1 && freezes > 0) {
+      // Missed exactly 1 day and has a freeze — protect the streak!
+      newStreak  = (profile.streak || 0) + 1;
+      freezeUsed = true;
+      await upsertProfile(userId, {
+        streak: newStreak,
+        last_active: today,
+        streak_freezes: freezes - 1,
+      });
+      return { newStreak, streakIncreased: true, freezeUsed: true };
+    } else {
+      // Missed too many days or no freeze — reset
+      newStreak = 1;
+    }
   } else {
-    newStreak = 1; // reset — missed a day
+    newStreak = 1;
   }
 
   await upsertProfile(userId, { streak: newStreak, last_active: today });
-  return { newStreak, streakIncreased: true };
+  return { newStreak, streakIncreased: true, freezeUsed };
+}
+
+// Buy a streak freeze with XP (costs 50 XP)
+export async function buyStreakFreeze(userId) {
+  const profile = await getProfile(userId);
+  if (!profile) return { success: false, reason: 'No profile' };
+  if ((profile.total_xp || 0) < 50) return { success: false, reason: 'Not enough XP' };
+  await upsertProfile(userId, {
+    total_xp: (profile.total_xp || 0) - 50,
+    streak_freezes: (profile.streak_freezes || 0) + 1,
+  });
+  return { success: true };
 }
 
 // Keep old name as alias so nothing else breaks

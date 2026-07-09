@@ -3,7 +3,7 @@ import { soundComplete, soundLevelUp } from '../utils/sounds';
 
 // ── Duolingo-style streak popup ───────────────────────────────────────────────
 // Usage: <StreakPopup streak={5} onClose={() => setShowStreak(false)} />
-export default function StreakPopup({ streak, onClose }) {
+export default function StreakPopup({ streak, freezeUsed, onClose }) {
   useEffect(() => {
     // Play level-up sound for milestones, complete sound otherwise
     if ([3, 7, 14, 30].includes(streak)) soundLevelUp();
@@ -52,6 +52,11 @@ export default function StreakPopup({ streak, onClose }) {
         <div style={{ fontSize: 18, fontWeight: 700, color: '#FAF6F0', marginBottom: 6 }}>
           Day Streak!
         </div>
+        {freezeUsed && (
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'rgba(59,130,246,0.2)', border: '1px solid rgba(59,130,246,0.4)', borderRadius: 99, padding: '5px 14px', fontSize: 13, fontWeight: 600, color: '#93C5FD', marginBottom: 8 }}>
+            🧊 Streak Freeze used — streak saved!
+          </div>
+        )}
 
         {/* Milestone badge */}
         {milestone && (

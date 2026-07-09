@@ -2,12 +2,11 @@
 import { useState, useEffect } from 'react';
 import { LANGUAGES, LESSONS_DATA } from '../data/content';
 import { UNITS, LESSON_ORDER, getLessonWords } from '../data/curriculum';
-
+import { generateQuiz } from '../utils/claude';
 import { useAuth } from '../context/AuthContext';
 import { supabase, recordActivity } from '../utils/supabase';
 import { soundCorrect, soundWrong, soundComplete, soundLevelUp, soundTap } from '../utils/sounds';
 import StreakPopup from '../components/StreakPopup';
-import { generateQuiz, translateLesson } from '../utils/claude';
 
 // ── TTS ──────────────────────────────────────────────────────────────────────
 const LANG_CONFIG = {
@@ -413,33 +412,11 @@ export default function Lessons() {
     }
   }
 
-  const [translatedWords, setTranslatedWords] = useState(null);
-const [translating, setTranslating]         = useState(false);
-
-async function openLesson(lesson) {
-  soundTap();
-  setActiveLesson(lesson);
-  setTranslatedWords(null);
-
-  const rawWords = getLessonWords_(lesson);
-
-  // Unit 1 lessons already have correct target language words from LESSONS_DATA
-  // Unit 2+ lessons have English meanings as target — translate them via Gemini
-  if (lesson.lessonIndex === null && currentLang?.name !== 'Bhojpuri') {
-    setTranslating(true);
-    setView('vocab');
-    try {
-      const translated = await translateLesson(rawWords, currentLang?.name);
-      setTranslatedWords(translated);
-    } catch {
-      setTranslatedWords(rawWords); // fallback
-    }
-    setTranslating(false);
-  } else {
-    setTranslatedWords(rawWords);
+  function openLesson(lesson) {
+    soundTap();
+    setActiveLesson(lesson);
     setView('vocab');
   }
-}
 
   function getLessonWords_(lesson) {
     return getLessonWords(lesson, selectedLang, LESSONS_DATA);
@@ -447,18 +424,7 @@ async function openLesson(lesson) {
 
   // ── Views ──────────────────────────────────────────────────────────────────
   if (view === 'vocab' && activeLesson) {
-  const words = translatedWords || getLessonWords_(activeLesson);
-
-  if (translating) return (
-    <div style={{ textAlign: 'center', padding: '5rem 0' }}>
-      <div style={{ fontSize: 48, marginBottom: 12 }}>✨</div>
-      <div style={{ fontFamily: "'Playfair Display',serif", fontSize: 20, color: 'var(--bl-text,#1A1208)', marginBottom: 8 }}>
-        Translating to {currentLang?.name}...
-      </div>
-      <div style={{ fontSize: 13, color: 'var(--bl-muted,#7A6552)', marginBottom: 16 }}>Gemini is preparing your lesson</div>
-      <div className="bl-shimmer" style={{ width: 200, height: 8, margin: '0 auto', borderRadius: 99 }} />
-    </div>
-  );
+    const words = getLessonWords_(activeLesson);
     return (
       <VocabView
         lesson={activeLesson}
@@ -471,7 +437,7 @@ async function openLesson(lesson) {
   }
 
   if (view === 'quiz' && activeLesson) {
-  const words = translatedWords || getLessonWords_(activeLesson);
+    const words = getLessonWords_(activeLesson);
     return (
       <LessonQuiz
         words={words}
@@ -486,7 +452,7 @@ async function openLesson(lesson) {
   if (view === 'result' && quizResult) {
     return (
       <>
-        {streakData && <StreakPopup streak={streakData.streak} onClose={() => setStreakData(null)} />}
+        {streakData && <StreakPopup streak={streakData.streak} freezeUsed={streakData.freezeUsed} onClose={() => setStreakData(null)} />}
         <LessonResult
           lesson={activeLesson}
           score={quizResult.score}
@@ -508,7 +474,7 @@ async function openLesson(lesson) {
 
   return (
     <div style={{ maxWidth: 600, paddingBottom: '3rem' }}>
-      {streakData && <StreakPopup streak={streakData.streak} onClose={() => setStreakData(null)} />}
+      {streakData && <StreakPopup streak={streakData.streak} freezeUsed={streakData.freezeUsed} onClose={() => setStreakData(null)} />}
 
       {/* Header */}
       <div className="fade-up" style={{ marginBottom: '1.25rem' }}>

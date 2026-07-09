@@ -1,8 +1,58 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { buyStreakFreeze } from '../utils/supabase';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 
 const WEEK_DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+
+// ── Streak Freeze Card ────────────────────────────────────────────────────────
+function FreezeCard({ freezes, totalXp, onBuy, buying }) {
+  const canAfford = totalXp >= 50;
+  return (
+    <div style={{
+      background: 'linear-gradient(135deg, #1e3a5f, #1a2f4e)',
+      borderRadius: 16, padding: '16px 18px', marginBottom: 16,
+      border: '1px solid rgba(99,179,237,0.2)',
+      display: 'flex', alignItems: 'center', gap: 14,
+      position: 'relative', overflow: 'hidden',
+    }}>
+      <div style={{ position: 'absolute', top: -20, right: -20, fontSize: 80, opacity: 0.06, pointerEvents: 'none' }}>🧊</div>
+      <div style={{ fontSize: 36, flexShrink: 0 }}>🧊</div>
+      <div style={{ flex: 1 }}>
+        <div style={{ fontSize: 14, fontWeight: 700, color: '#FAF6F0', marginBottom: 3 }}>
+          Streak Freeze {freezes > 0 ? `— ${freezes} available` : '— None left!'}
+        </div>
+        <div style={{ fontSize: 12, color: 'rgba(250,246,240,0.55)', lineHeight: 1.5 }}>
+          {freezes > 0
+            ? `You're protected! Miss 1 day and your ${freezes > 1 ? 'freeze' : 'last freeze'} auto-activates.`
+            : 'Buy a freeze to protect your streak if you miss a day.'}
+        </div>
+      </div>
+      <div style={{ flexShrink: 0, textAlign: 'center' }}>
+        {freezes > 0 ? (
+          <div style={{ display: 'flex', gap: 4 }}>
+            {Array.from({ length: Math.min(freezes, 3) }, (_, i) => (
+              <span key={i} style={{ fontSize: 20 }}>🧊</span>
+            ))}
+          </div>
+        ) : (
+          <button onClick={onBuy} disabled={!canAfford || buying}
+            style={{
+              background: canAfford && !buying ? '#3B82F6' : 'rgba(250,246,240,0.1)',
+              color: canAfford && !buying ? '#FAF6F0' : 'rgba(250,246,240,0.3)',
+              border: 'none', borderRadius: 10, padding: '8px 14px',
+              fontSize: 12, fontWeight: 700, cursor: canAfford && !buying ? 'pointer' : 'not-allowed',
+              whiteSpace: 'nowrap',
+            }}>
+            {buying ? 'Buying...' : canAfford ? 'Buy — 50 XP' : `Need ${50 - totalXp} more XP`}
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
 
 // ── Streak Banner ─────────────────────────────────────────────────────────────
 function StreakBanner({ streak, lastActive, firstName, onAction, dark }) {
@@ -84,9 +134,18 @@ function StreakBanner({ streak, lastActive, firstName, onAction, dark }) {
 }
 
 export default function Home() {
-  const { user, profile } = useAuth();
+  const { user, profile, refreshProfile } = useAuth();
   const { dark } = useTheme();
   const navigate = useNavigate();
+  const [buying, setBuying] = useState(false);
+
+  async function handleBuyFreeze() {
+    if (!user || buying) return;
+    setBuying(true);
+    await buyStreakFreeze(user.id);
+    await refreshProfile();
+    setBuying(false);
+  }
 
   const name        = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Learner';
   const firstName   = name.charAt(0).toUpperCase() + name.slice(1);
@@ -95,6 +154,7 @@ export default function Home() {
   const lastActive  = profile?.last_active;
   const doneToday   = lastActive === today;
   // Show streak as "at risk" if not done today yet
+  const displayStreak = doneToday ? streak : streak; // number stays same
   const streakAtRisk  = !doneToday && streak > 0;    // but we flag it
   const totalXp     = profile?.total_xp      || 0;
   const wordsLearned = profile?.words_learned || 0;
@@ -187,6 +247,14 @@ export default function Home() {
         firstName={firstName}
         dark={dark}
         onAction={() => navigate('/lessons')}
+      />
+
+      {/* ── Streak Freeze ── */}
+      <FreezeCard
+        freezes={profile?.streak_freezes || 0}
+        totalXp={totalXp}
+        onBuy={handleBuyFreeze}
+        buying={buying}
       />
 
       {/* ── Stats row ── */}
