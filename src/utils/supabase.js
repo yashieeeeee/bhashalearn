@@ -81,7 +81,7 @@ export async function recordActivity(userId) {
   }
 
   const last     = profile.last_active;
-  const freezes  = profile.streak_freezes || 0;
+  const freezes  = profile.streak_freezes ?? 1; // null = existing user before feature, treat as 1
 
   // Already recorded activity today — don't increment again
   if (last === today) {

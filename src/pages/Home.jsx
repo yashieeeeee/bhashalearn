@@ -139,6 +139,9 @@ export default function Home() {
   const navigate = useNavigate();
   const [buying, setBuying] = useState(false);
 
+  // Give existing users 1 free freeze if column was null (created before feature)
+  const freezes = profile?.streak_freezes ?? 1;
+
   async function handleBuyFreeze() {
     if (!user || buying) return;
     setBuying(true);
@@ -154,6 +157,7 @@ export default function Home() {
   const lastActive  = profile?.last_active;
   const doneToday   = lastActive === today;
   // Show streak as "at risk" if not done today yet
+  const displayStreak = doneToday ? streak : streak; // number stays same
   const streakAtRisk  = !doneToday && streak > 0;    // but we flag it
   const totalXp     = profile?.total_xp      || 0;
   const wordsLearned = profile?.words_learned || 0;
@@ -250,7 +254,7 @@ export default function Home() {
 
       {/* ── Streak Freeze ── */}
       <FreezeCard
-        freezes={profile?.streak_freezes || 0}
+        freezes={freezes}
         totalXp={totalXp}
         onBuy={handleBuyFreeze}
         buying={buying}
