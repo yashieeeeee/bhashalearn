@@ -104,14 +104,18 @@ function StreakBanner({ streak, lastActive, firstName, onAction, dark }) {
       btnColor: urgent ? '#DC2626' : '#E8611A',
     };
   } else {
-    // Missed yesterday — streak already reset, encourage restart
+    // Missed 2+ days — streak will reset on next activity
     config = {
-      emoji: '💪',
+      emoji: streak > 0 ? '😔' : '💪',
       bg: 'linear-gradient(135deg, #1A1208, #2A1E0E)',
       border: 'rgba(232,97,26,0.2)',
-      title: `Start a new streak today, ${firstName}!`,
-      sub: "Yesterday's gone — today is a fresh start. You've got this!",
-      btn: '🔥 Restart streak',
+      title: streak > 0
+        ? `Your ${streak} day streak is at risk, ${firstName}!`
+        : `Start a new streak today, ${firstName}!`,
+      sub: streak > 0
+        ? "You've missed a few days. Do a lesson now to save what you can!"
+        : "Today is a fresh start. Build your streak one day at a time!",
+      btn: streak > 0 ? '🔥 Save my streak' : '🔥 Start streak',
       btnColor: '#E8611A',
     };
   }
@@ -146,16 +150,17 @@ export default function Home() {
   const freezes = localFreezes ?? (profile?.streak_freezes ?? 1);
 
   async function handleBuyFreeze() {
-    if (!user || buying) return;
-    if (totalXp < 50) return;
-    setBuying(true);
-    const result = await buyStreakFreeze(user.id);
-    if (result?.success) {
-      // Update locally immediately so UI reflects change without waiting for DB
-      setLocalFreezes((localFreezes ?? (profile?.streak_freezes ?? 1)) + 1);
+    if (!user || buying || totalXp < 50) return;
+    setBuying(true); // locks button immediately
+    try {
+      const result = await buyStreakFreeze(user.id);
+      if (result?.success) {
+        setLocalFreezes(prev => (prev ?? (profile?.streak_freezes ?? 1)) + 1);
+        await refreshProfile();
+      }
+    } finally {
+      setBuying(false);
     }
-    await refreshProfile();
-    setBuying(false);
   }
 
   const name        = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Learner';
